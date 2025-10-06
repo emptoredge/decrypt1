@@ -144,6 +144,7 @@ export default async function handler(req, res) {
       responseIv[i] = iv[i] ^ 0xFF;
     }
 
+    let base64Response = null;
     try {
       const responseJson = JSON.stringify(responseData);
       const responseBuffer = Buffer.from(responseJson, 'utf8');
@@ -159,10 +160,7 @@ export default async function handler(req, res) {
       
       // Combine ciphertext + tag and encode as Base64
       const finalResponse = Buffer.concat([encryptedResponse, responseTag]);
-      const base64Response = finalResponse.toString('base64');
-      
-      // Return the Base64 encoded encrypted response as plain text
-      res.status(200).send(base64Response);
+      base64Response = finalResponse.toString('base64');
       
     } catch (encryptionError) {
       return res.status(500).json({ 
@@ -170,10 +168,26 @@ export default async function handler(req, res) {
         details: encryptionError.message
       });
     }
+
+    // Return debug information (this endpoint shows the process)
+    res.status(200).json({ 
+      decrypted: decryptedText,
+      json: parsed,
+      responseData: responseData,
+      encryptedResponse: base64Response,
+      algorithm: "RSA-2048-OAEP-SHA256 + AES-128-GCM",
+      debug: {
+        aesKeyLength: aesKey.length,
+        ivLength: iv.length,
+        payloadLength: encryptedPayload.length,
+        ciphertextLength: encryptedPayload.length - 16,
+        tagLength: 16,
+        responseIvHex: responseIv.toString('hex'),
+        requestIvHex: iv.toString('hex')
+      }
+    });
     
   } catch (e) {
     res.status(500).json({ error: e.message, stack: e.stack });
   }
 }
-
-// Vercel (API Routes) expects default export
