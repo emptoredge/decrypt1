@@ -67,9 +67,16 @@ export default async function handler(req, res) {
 
     // Step 2: Decode the IV
     const iv = Buffer.from(initial_vector, "base64");
-    if (iv.length !== 12) {
+    
+    // Determine AES mode based on IV length
+    let aesMode = 'aes-256-gcm';
+    if (iv.length === 16) {
+      aesMode = 'aes-256-cbc'; // CBC uses 16-byte IV
+    } else if (iv.length === 12) {
+      aesMode = 'aes-256-gcm'; // GCM uses 12-byte IV (nonce)
+    } else {
       return res.status(500).json({ 
-        error: `Invalid IV length: ${iv.length} bytes (expected 12 for AES-GCM)`,
+        error: `Invalid IV length: ${iv.length} bytes (expected 12 for GCM or 16 for CBC)`,
         debug: {
           ivHex: iv.toString('hex'),
           ivLength: iv.length
@@ -79,46 +86,71 @@ export default async function handler(req, res) {
 
     // Step 3: Decode the encrypted payload
     const encryptedPayload = Buffer.from(encrypted_flow_data, "base64");
-    
-    // For AES-GCM, we need to separate the ciphertext from the authentication tag
-    // The tag is typically the last 16 bytes
-    const tagLength = 16;
-    if (encryptedPayload.length < tagLength) {
-      return res.status(500).json({ 
-        error: `Encrypted payload too short: ${encryptedPayload.length} bytes (need at least ${tagLength} for tag)`
-      });
-    }
-    
-    const ciphertext = encryptedPayload.subarray(0, encryptedPayload.length - tagLength);
-    const tag = encryptedPayload.subarray(encryptedPayload.length - tagLength);
 
-    // Step 4: AES-GCM decryption
+    // Step 4: AES decryption (GCM or CBC based on IV length)
     let decryptedText = null;
-    let decodingMethod = 'AES-GCM';
+    let decodingMethod = aesMode;
     
-    try {
-      const decipher = crypto.createDecipheriv('aes-256-gcm', aesKey, iv);
-      decipher.setAuthTag(tag);
-      
-      let decrypted = decipher.update(ciphertext);
-      decrypted = Buffer.concat([decrypted, decipher.final()]);
-      
-      decryptedText = decrypted.toString('utf8');
-      
-    } catch (aesError) {
-      return res.status(500).json({ 
-        error: "AES-GCM decryption failed",
-        details: aesError.message,
-        debug: {
-          aesKeyLength: aesKey.length,
-          aesKeyHex: aesKey.toString('hex'),
-          ivLength: iv.length,
-          ivHex: iv.toString('hex'),
-          ciphertextLength: ciphertext.length,
-          tagLength: tag.length,
-          tagHex: tag.toString('hex')
+    if (aesMode === 'aes-256-gcm') {
+      // AES-GCM decryption
+      try {
+        // For AES-GCM, we need to separate the ciphertext from the authentication tag
+        // The tag is typically the last 16 bytes
+        const tagLength = 16;
+        if (encryptedPayload.length < tagLength) {
+          return res.status(500).json({ 
+            error: `Encrypted payload too short for GCM: ${encryptedPayload.length} bytes (need at least ${tagLength} for tag)`
+          });
         }
-      });
+        
+        const ciphertext = encryptedPayload.subarray(0, encryptedPayload.length - tagLength);
+        const tag = encryptedPayload.subarray(encryptedPayload.length - tagLength);
+
+        const decipher = crypto.createDecipheriv('aes-256-gcm', aesKey, iv);
+        decipher.setAuthTag(tag);
+        
+        let decrypted = decipher.update(ciphertext);
+        decrypted = Buffer.concat([decrypted, decipher.final()]);
+        
+        decryptedText = decrypted.toString('utf8');
+        
+      } catch (gcmError) {
+        return res.status(500).json({ 
+          error: "AES-GCM decryption failed",
+          details: gcmError.message,
+          debug: {
+            aesKeyLength: aesKey.length,
+            aesKeyHex: aesKey.toString('hex'),
+            ivLength: iv.length,
+            ivHex: iv.toString('hex'),
+            payloadLength: encryptedPayload.length
+          }
+        });
+      }
+    } else {
+      // AES-CBC decryption
+      try {
+        const decipher = crypto.createDecipheriv('aes-256-cbc', aesKey, iv);
+        decipher.setAutoPadding(true); // Handle PKCS#7 padding
+        
+        let decrypted = decipher.update(encryptedPayload);
+        decrypted = Buffer.concat([decrypted, decipher.final()]);
+        
+        decryptedText = decrypted.toString('utf8');
+        
+      } catch (cbcError) {
+        return res.status(500).json({ 
+          error: "AES-CBC decryption failed",
+          details: cbcError.message,
+          debug: {
+            aesKeyLength: aesKey.length,
+            aesKeyHex: aesKey.toString('hex'),
+            ivLength: iv.length,
+            ivHex: iv.toString('hex'),
+            payloadLength: encryptedPayload.length
+          }
+        });
+      }
     }
 
     // Step 5: Try to parse as JSON
@@ -132,14 +164,13 @@ export default async function handler(req, res) {
     res.status(200).json({ 
       decrypted: decryptedText,
       json: parsed,
-      algorithm: "RSA-2048 + AES-256-GCM",
+      algorithm: `RSA-2048 + ${aesMode.toUpperCase()}`,
       decodingMethod: decodingMethod,
       debug: {
         aesKeyLength: aesKey.length,
         ivLength: iv.length,
         payloadLength: encryptedPayload.length,
-        ciphertextLength: ciphertext.length,
-        tagLength: tag.length
+        detectedMode: aesMode
       }
     });
     
