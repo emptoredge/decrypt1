@@ -80,11 +80,63 @@ export default async function handler(req, res) {
       }
     }
 
-    // Convert decrypted flow data to string
-    const decryptedText = decryptedFlowData.toString('utf8');
+    // Convert decrypted flow data to string and try different decodings
+    let decryptedText = decryptedFlowData.toString('utf8');
+    let parsed = null;
+    let decodingMethod = 'utf8';
+    
+    // If the UTF-8 conversion produces non-printable characters, try other approaches
+    const isPrintable = /^[\x20-\x7E\s]*$/.test(decryptedText);
+    
+    if (!isPrintable) {
+      // Try different decoding approaches
+      
+      // 1. Try base64 decoding
+      try {
+        const base64Decoded = Buffer.from(decryptedFlowData.toString('base64'), 'base64').toString('utf8');
+        if (/^[\x20-\x7E\s]*$/.test(base64Decoded)) {
+          decryptedText = base64Decoded;
+          decodingMethod = 'base64->utf8';
+        }
+      } catch (e) {}
+      
+      // 2. Try hex decoding
+      if (!isPrintable) {
+        try {
+          const hexDecoded = Buffer.from(decryptedFlowData.toString('hex'), 'hex').toString('utf8');
+          if (/^[\x20-\x7E\s]*$/.test(hexDecoded)) {
+            decryptedText = hexDecoded;
+            decodingMethod = 'hex->utf8';
+          }
+        } catch (e) {}
+      }
+      
+      // 3. Try gzip decompression
+      if (!isPrintable) {
+        try {
+          const zlib = require('zlib');
+          const decompressed = zlib.gunzipSync(decryptedFlowData).toString('utf8');
+          if (/^[\x20-\x7E\s]*$/.test(decompressed)) {
+            decryptedText = decompressed;
+            decodingMethod = 'gzip->utf8';
+          }
+        } catch (e) {}
+      }
+      
+      // 4. Try deflate decompression
+      if (!isPrintable) {
+        try {
+          const zlib = require('zlib');
+          const decompressed = zlib.inflateSync(decryptedFlowData).toString('utf8');
+          if (/^[\x20-\x7E\s]*$/.test(decompressed)) {
+            decryptedText = decompressed;
+            decodingMethod = 'deflate->utf8';
+          }
+        } catch (e) {}
+      }
+    }
 
     // Try parse as JSON
-    let parsed;
     try {
       parsed = JSON.parse(decryptedText);
     } catch {
@@ -95,6 +147,8 @@ export default async function handler(req, res) {
       decrypted: decryptedText,
       json: parsed,
       algorithm: "RSA-2048",
+      decodingMethod: decodingMethod,
+      rawHex: decryptedFlowData.toString('hex'),
       aesKeyInfo: {
         length: decryptedAesKey.length,
         hex: decryptedAesKey.toString('hex')
