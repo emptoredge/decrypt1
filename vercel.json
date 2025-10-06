@@ -4,12 +4,20 @@
     {
       "src": "api/decrypt.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "api/decrypt-debug.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/decrypt",
       "dest": "api/decrypt.js"
+    },
+    {
+      "src": "/api/decrypt-debug",
+      "dest": "api/decrypt-debug.js"
     }
   ]
 }
