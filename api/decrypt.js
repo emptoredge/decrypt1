@@ -16,15 +16,10 @@ export default async function handler(req, res) {
     
     const privateKey = createPrivateKey(PRIVATE_KEY_PEM);
     
-    // Pure RSA decryption - no AES involved!
-    // Both encrypted_aes_key and encrypted_flow_data are RSA-encrypted
-    
-    let decryptedAesKey = null;
-    let decryptedFlowData = null;
-    
-    // Decrypt the AES key (which might actually be metadata or part of the flow)
+    // Step 1: RSA-decrypt the AES key
+    let aesKeyBuffer = null;
     try {
-      decryptedAesKey = privateDecrypt(
+      aesKeyBuffer = privateDecrypt(
         {
           key: privateKey,
           padding: crypto.constants.RSA_PKCS1_PADDING,
@@ -33,7 +28,7 @@ export default async function handler(req, res) {
       );
     } catch (pkcs1Error) {
       try {
-        decryptedAesKey = privateDecrypt(
+        aesKeyBuffer = privateDecrypt(
           {
             key: privateKey,
             padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
@@ -50,113 +45,106 @@ export default async function handler(req, res) {
         });
       }
     }
-    
-    // Decrypt the flow data directly with RSA
-    try {
-      decryptedFlowData = privateDecrypt(
-        {
-          key: privateKey,
-          padding: crypto.constants.RSA_PKCS1_PADDING,
-        },
-        Buffer.from(encrypted_flow_data, "base64")
-      );
-    } catch (pkcs1Error) {
-      try {
-        decryptedFlowData = privateDecrypt(
-          {
-            key: privateKey,
-            padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-          },
-          Buffer.from(encrypted_flow_data, "base64")
-        );
-      } catch (oaepError) {
-        return res.status(500).json({ 
-          error: "RSA decryption failed for encrypted_flow_data",
-          details: {
-            pkcs1Error: pkcs1Error.message,
-            oaepError: oaepError.message
-          }
-        });
-      }
-    }
 
-    // Convert decrypted flow data to string and try different decodings
-    let decryptedText = decryptedFlowData.toString('utf8');
-    let parsed = null;
-    let decodingMethod = 'utf8';
-    
-    // If the UTF-8 conversion produces non-printable characters, try other approaches
-    const isPrintable = /^[\x20-\x7E\s]*$/.test(decryptedText);
-    
-    if (!isPrintable) {
-      // Try different decoding approaches
-      
-      // 1. Try base64 decoding
-      try {
-        const base64Decoded = Buffer.from(decryptedFlowData.toString('base64'), 'base64').toString('utf8');
-        if (/^[\x20-\x7E\s]*$/.test(base64Decoded)) {
-          decryptedText = base64Decoded;
-          decodingMethod = 'base64->utf8';
+    // Extract the AES key (typically 32 bytes for AES-256)
+    let aesKey;
+    if (aesKeyBuffer.length === 32) {
+      // Perfect AES-256 key
+      aesKey = aesKeyBuffer;
+    } else if (aesKeyBuffer.length > 32) {
+      // Take first 32 bytes if longer (might have padding)
+      aesKey = aesKeyBuffer.subarray(0, 32);
+    } else {
+      // Key too short, might need padding or different extraction
+      return res.status(500).json({ 
+        error: `Invalid AES key length: ${aesKeyBuffer.length} bytes (expected 32 for AES-256)`,
+        debug: {
+          aesKeyHex: aesKeyBuffer.toString('hex'),
+          aesKeyLength: aesKeyBuffer.length
         }
-      } catch (e) {}
-      
-      // 2. Try hex decoding
-      if (!isPrintable) {
-        try {
-          const hexDecoded = Buffer.from(decryptedFlowData.toString('hex'), 'hex').toString('utf8');
-          if (/^[\x20-\x7E\s]*$/.test(hexDecoded)) {
-            decryptedText = hexDecoded;
-            decodingMethod = 'hex->utf8';
-          }
-        } catch (e) {}
-      }
-      
-      // 3. Try gzip decompression
-      if (!isPrintable) {
-        try {
-          const zlib = require('zlib');
-          const decompressed = zlib.gunzipSync(decryptedFlowData).toString('utf8');
-          if (/^[\x20-\x7E\s]*$/.test(decompressed)) {
-            decryptedText = decompressed;
-            decodingMethod = 'gzip->utf8';
-          }
-        } catch (e) {}
-      }
-      
-      // 4. Try deflate decompression
-      if (!isPrintable) {
-        try {
-          const zlib = require('zlib');
-          const decompressed = zlib.inflateSync(decryptedFlowData).toString('utf8');
-          if (/^[\x20-\x7E\s]*$/.test(decompressed)) {
-            decryptedText = decompressed;
-            decodingMethod = 'deflate->utf8';
-          }
-        } catch (e) {}
-      }
+      });
     }
 
-    // Try parse as JSON
+    // Step 2: Decode the IV
+    const iv = Buffer.from(initial_vector, "base64");
+    if (iv.length !== 12) {
+      return res.status(500).json({ 
+        error: `Invalid IV length: ${iv.length} bytes (expected 12 for AES-GCM)`,
+        debug: {
+          ivHex: iv.toString('hex'),
+          ivLength: iv.length
+        }
+      });
+    }
+
+    // Step 3: Decode the encrypted payload
+    const encryptedPayload = Buffer.from(encrypted_flow_data, "base64");
+    
+    // For AES-GCM, we need to separate the ciphertext from the authentication tag
+    // The tag is typically the last 16 bytes
+    const tagLength = 16;
+    if (encryptedPayload.length < tagLength) {
+      return res.status(500).json({ 
+        error: `Encrypted payload too short: ${encryptedPayload.length} bytes (need at least ${tagLength} for tag)`
+      });
+    }
+    
+    const ciphertext = encryptedPayload.subarray(0, encryptedPayload.length - tagLength);
+    const tag = encryptedPayload.subarray(encryptedPayload.length - tagLength);
+
+    // Step 4: AES-GCM decryption
+    let decryptedText = null;
+    let decodingMethod = 'AES-GCM';
+    
+    try {
+      const decipher = crypto.createDecipheriv('aes-256-gcm', aesKey, iv);
+      decipher.setAuthTag(tag);
+      
+      let decrypted = decipher.update(ciphertext);
+      decrypted = Buffer.concat([decrypted, decipher.final()]);
+      
+      decryptedText = decrypted.toString('utf8');
+      
+    } catch (aesError) {
+      return res.status(500).json({ 
+        error: "AES-GCM decryption failed",
+        details: aesError.message,
+        debug: {
+          aesKeyLength: aesKey.length,
+          aesKeyHex: aesKey.toString('hex'),
+          ivLength: iv.length,
+          ivHex: iv.toString('hex'),
+          ciphertextLength: ciphertext.length,
+          tagLength: tag.length,
+          tagHex: tag.toString('hex')
+        }
+      });
+    }
+
+    // Step 5: Try to parse as JSON
+    let parsed = null;
     try {
       parsed = JSON.parse(decryptedText);
-    } catch {
-      parsed = null;
+    } catch (jsonError) {
+      // Not JSON, that's okay
     }
 
     res.status(200).json({ 
       decrypted: decryptedText,
       json: parsed,
-      algorithm: "RSA-2048",
+      algorithm: "RSA-2048 + AES-256-GCM",
       decodingMethod: decodingMethod,
-      rawHex: decryptedFlowData.toString('hex'),
-      aesKeyInfo: {
-        length: decryptedAesKey.length,
-        hex: decryptedAesKey.toString('hex')
+      debug: {
+        aesKeyLength: aesKey.length,
+        ivLength: iv.length,
+        payloadLength: encryptedPayload.length,
+        ciphertextLength: ciphertext.length,
+        tagLength: tag.length
       }
     });
     
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: e.message, stack: e.stack });
   }
 }
 
