@@ -12,6 +12,10 @@
     {
       "src": "api/decrypt-test.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "api/decrypt-n8n.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -26,6 +30,10 @@
     {
       "src": "/api/decrypt-test",
       "dest": "api/decrypt-test.js"
+    },
+    {
+      "src": "/api/decrypt-n8n",
+      "dest": "api/decrypt-n8n.js"
     }
   ]
 }

@@ -19,7 +19,6 @@ export default async function handler(req, res) {
     // Step 1: RSA-OAEP decrypt the AES key with SHA-256
     let aesKey = null;
     try {
-      // WhatsApp uses RSA-OAEP with SHA-256 for both MGF1 and hash
       aesKey = privateDecrypt(
         {
           key: privateKey,
@@ -31,34 +30,22 @@ export default async function handler(req, res) {
     } catch (oaepError) {
       return res.status(500).json({ 
         error: "RSA-OAEP decryption failed for encrypted_aes_key",
-        details: oaepError.message,
-        debug: {
-          expectedKeyLength: "16 bytes (AES-128)",
-          paddingUsed: "RSA_PKCS1_OAEP_PADDING with SHA-256"
-        }
+        details: oaepError.message
       });
     }
 
-    // Validate AES key length (must be exactly 16 bytes for AES-128)
+    // Validate AES key length
     if (aesKey.length !== 16) {
       return res.status(500).json({ 
-        error: `Invalid AES key length: ${aesKey.length} bytes (expected exactly 16 for AES-128)`,
-        debug: {
-          aesKeyHex: aesKey.toString('hex'),
-          aesKeyLength: aesKey.length
-        }
+        error: `Invalid AES key length: ${aesKey.length} bytes (expected exactly 16 for AES-128)`
       });
     }
 
-    // Step 2: Decode the IV (16 bytes for AES-128-GCM)
+    // Step 2: Decode the IV
     const iv = Buffer.from(initial_vector, "base64");
     if (iv.length !== 16) {
       return res.status(500).json({ 
-        error: `Invalid IV length: ${iv.length} bytes (expected exactly 16 for AES-128-GCM)`,
-        debug: {
-          ivHex: iv.toString('hex'),
-          ivLength: iv.length
-        }
+        error: `Invalid IV length: ${iv.length} bytes (expected exactly 16 for AES-128-GCM)`
       });
     }
 
@@ -69,18 +56,16 @@ export default async function handler(req, res) {
     let decryptedText = null;
     
     try {
-      // Split encrypted payload: last 16 bytes are the GCM authentication tag
       const tagLength = 16;
       if (encryptedPayload.length < tagLength) {
         return res.status(500).json({ 
-          error: `Encrypted payload too short for GCM: ${encryptedPayload.length} bytes (need at least ${tagLength} for tag)`
+          error: `Encrypted payload too short for GCM: ${encryptedPayload.length} bytes`
         });
       }
       
       const ciphertext = encryptedPayload.subarray(0, encryptedPayload.length - tagLength);
       const tag = encryptedPayload.subarray(encryptedPayload.length - tagLength);
 
-      // Create AES-128-GCM decipher with 16-byte IV
       const decipher = crypto.createDecipheriv('aes-128-gcm', aesKey, iv);
       decipher.setAuthTag(tag);
       
@@ -92,20 +77,11 @@ export default async function handler(req, res) {
     } catch (gcmError) {
       return res.status(500).json({ 
         error: "AES-128-GCM decryption failed",
-        details: gcmError.message,
-        debug: {
-          aesKeyLength: aesKey.length,
-          aesKeyHex: aesKey.toString('hex'),
-          ivLength: iv.length,
-          ivHex: iv.toString('hex'),
-          payloadLength: encryptedPayload.length,
-          ciphertextLength: encryptedPayload.length - 16,
-          tagLength: 16
-        }
+        details: gcmError.message
       });
     }
 
-    // Step 5: Try to parse as JSON
+    // Step 5: Parse the decrypted JSON
     let parsed = null;
     try {
       parsed = JSON.parse(decryptedText);
@@ -118,9 +94,9 @@ export default async function handler(req, res) {
 
     // Step 6: Create response based on the action
     let responseData = {};
+    let formData = null; // Store form data for your business logic
     
     if (parsed.action === "ping") {
-      // Health check response
       responseData = {
         version: parsed.version,
         data: {
@@ -128,20 +104,16 @@ export default async function handler(req, res) {
         }
       };
     } else if (parsed.action === "data_exchange") {
-      // Handle form submissions and navigation
       const currentScreen = parsed.screen;
       const submittedData = parsed.data || {};
       
-      // IMPORTANT: Store the submitted data for your business logic
-      // You can log it, save to database, send to webhook, etc.
-      console.log('📋 Form Data Received:', {
+      // Capture form data for business logic
+      formData = {
         screen: currentScreen,
         data: submittedData,
-        timestamp: new Date().toISOString(),
-        // Note: Mobile number should come from WhatsApp webhook headers or context
-      });
+        timestamp: new Date().toISOString()
+      };
       
-      // Define the routing model from your flow.json
       const routingModel = {
         "FIRST_NAME": "LAST_NAME",
         "LAST_NAME": "DATE_OF_BIRTH",
@@ -172,7 +144,6 @@ export default async function handler(req, res) {
         "GOALS": "THANK_YOU_SCREEN"
       };
       
-      // Get the next screen
       const nextScreen = routingModel[currentScreen];
       
       if (!nextScreen) {
@@ -182,14 +153,11 @@ export default async function handler(req, res) {
         });
       }
       
-      // For data_exchange, we need to return the next screen and preserve data
       responseData = {
         screen: nextScreen,
-        data: submittedData // Pass through the submitted data
+        data: submittedData
       };
-      
     } else {
-      // Unknown action
       return res.status(500).json({ 
         error: `Unknown action: ${parsed.action}`,
         receivedData: parsed
@@ -197,32 +165,24 @@ export default async function handler(req, res) {
     }
 
     // Step 7: Encrypt the response
-    // WhatsApp requires response IV to be bitwise inverted request IV (XOR 0xFF)
     const responseIv = Buffer.alloc(16);
     for (let i = 0; i < 16; i++) {
       responseIv[i] = iv[i] ^ 0xFF;
     }
 
+    let base64Response = null;
     try {
       const responseJson = JSON.stringify(responseData);
       const responseBuffer = Buffer.from(responseJson, 'utf8');
       
-      // Create AES-128-GCM cipher for response
       const cipher = crypto.createCipheriv('aes-128-gcm', aesKey, responseIv);
       
       let encryptedResponse = cipher.update(responseBuffer);
       encryptedResponse = Buffer.concat([encryptedResponse, cipher.final()]);
       
-      // Get the authentication tag
       const responseTag = cipher.getAuthTag();
-      
-      // Combine ciphertext + tag and encode as Base64
       const finalResponse = Buffer.concat([encryptedResponse, responseTag]);
-      const base64Response = finalResponse.toString('base64');
-      
-      // Return the Base64 encoded encrypted response as plain text
-      res.setHeader('Content-Type', 'text/plain');
-      res.status(200).send(base64Response);
+      base64Response = finalResponse.toString('base64');
       
     } catch (encryptionError) {
       return res.status(500).json({ 
@@ -230,10 +190,32 @@ export default async function handler(req, res) {
         details: encryptionError.message
       });
     }
+
+    // Return BOTH the encrypted response AND the form data for n8n
+    res.status(200).json({
+      // This is what WhatsApp needs (for n8n to return)
+      encryptedResponse: base64Response,
+      
+      // This is what YOU need for business logic
+      decryptedRequest: {
+        action: parsed.action,
+        screen: parsed.screen,
+        data: parsed.data,
+        version: parsed.version
+      },
+      
+      // Form data for easy access
+      formData: formData,
+      
+      // Response data being sent back
+      responseData: responseData,
+      
+      // Metadata
+      timestamp: new Date().toISOString(),
+      algorithm: "RSA-2048-OAEP-SHA256 + AES-128-GCM"
+    });
     
   } catch (e) {
     res.status(500).json({ error: e.message, stack: e.stack });
   }
 }
-
-// Vercel (API Routes) expects default export
