@@ -162,6 +162,7 @@ export default async function handler(req, res) {
       const base64Response = finalResponse.toString('base64');
       
       // Return the Base64 encoded encrypted response as plain text
+      res.setHeader('Content-Type', 'text/plain');
       res.status(200).send(base64Response);
       
     } catch (encryptionError) {
