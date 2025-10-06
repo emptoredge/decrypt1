@@ -51,10 +51,23 @@ export default async function handler(req, res) {
     // Handle AES key length - WhatsApp sends padded keys
     // Based on debug output, we get 102 bytes but need 32
     if (decryptedAesKey.length === 102) {
-      // WhatsApp appears to send the AES key with PKCS1 padding
-      // The actual AES key might be embedded in the padded data
-      // Try taking the last 32 bytes (common pattern)
-      decryptedAesKey = decryptedAesKey.subarray(-32);
+      // PKCS1 padding structure: 0x00 0x02 [random padding] 0x00 [actual data]
+      // Find the separator (0x00) after the padding
+      let separatorIndex = -1;
+      for (let i = 2; i < decryptedAesKey.length; i++) {
+        if (decryptedAesKey[i] === 0x00) {
+          separatorIndex = i;
+          break;
+        }
+      }
+      
+      if (separatorIndex !== -1 && (decryptedAesKey.length - separatorIndex - 1) === 32) {
+        // Extract the 32-byte AES key after the separator
+        decryptedAesKey = decryptedAesKey.subarray(separatorIndex + 1);
+      } else {
+        // Fallback: try last 32 bytes
+        decryptedAesKey = decryptedAesKey.subarray(-32);
+      }
     } else if (decryptedAesKey.length > 32) {
       // If still longer, try first 32 bytes
       decryptedAesKey = decryptedAesKey.subarray(0, 32);
