@@ -120,21 +120,71 @@ export default async function handler(req, res) {
     let responseData = {};
     
     if (parsed.action === "ping") {
-      // For ping action, echo back the version
+      // Health check response
       responseData = {
         version: parsed.version,
         data: {
           status: "active"
         }
       };
-    } else {
-      // For other actions, provide a basic response
-      responseData = {
-        version: parsed.version || "3.0",
-        data: {
-          status: "received"
-        }
+    } else if (parsed.action === "data_exchange") {
+      // Handle form submissions and navigation
+      const currentScreen = parsed.screen;
+      const submittedData = parsed.data || {};
+      
+      // Define the routing model from your flow.json
+      const routingModel = {
+        "FIRST_NAME": "LAST_NAME",
+        "LAST_NAME": "DATE_OF_BIRTH",
+        "DATE_OF_BIRTH": "HEIGHT_CM",
+        "HEIGHT_CM": "WEIGHT_KG",
+        "WEIGHT_KG": "ALLERGIES",
+        "ALLERGIES": "MEDICAL_FLAGS",
+        "MEDICAL_FLAGS": "SUPPLEMENTS_TAKING",
+        "SUPPLEMENTS_TAKING": "WAKE_TIME",
+        "WAKE_TIME": "SLEEP_TIME",
+        "SLEEP_TIME": "CITY",
+        "CITY": "COUNTRY",
+        "COUNTRY": "SEX_AT_BIRTH",
+        "SEX_AT_BIRTH": "PREGNANCY_STATUS",
+        "PREGNANCY_STATUS": "LACTATION_STATUS",
+        "LACTATION_STATUS": "ACTIVITY_LEVEL",
+        "ACTIVITY_LEVEL": "DIET_TYPE",
+        "DIET_TYPE": "LANGUAGE_PREFERENCE",
+        "LANGUAGE_PREFERENCE": "SPICE_LEVEL",
+        "SPICE_LEVEL": "CUISINE_PREFERENCE",
+        "CUISINE_PREFERENCE": "COOKING_OIL_USES",
+        "COOKING_OIL_USES": "COOKING_FACILITIES",
+        "COOKING_FACILITIES": "EATING_OUT_PER_WEEK",
+        "EATING_OUT_PER_WEEK": "FASTING_PATTERN",
+        "FASTING_PATTERN": "CAFFEINE_PREFERENCE",
+        "CAFFEINE_PREFERENCE": "ALCOHOL_FREQUENCY",
+        "ALCOHOL_FREQUENCY": "GOALS",
+        "GOALS": "THANK_YOU_SCREEN"
       };
+      
+      // Get the next screen
+      const nextScreen = routingModel[currentScreen];
+      
+      if (!nextScreen) {
+        return res.status(500).json({ 
+          error: `Unknown screen or final screen: ${currentScreen}`,
+          debug: { currentScreen, submittedData }
+        });
+      }
+      
+      // For data_exchange, we need to return the next screen and preserve data
+      responseData = {
+        screen: nextScreen,
+        data: submittedData // Pass through the submitted data
+      };
+      
+    } else {
+      // Unknown action
+      return res.status(500).json({ 
+        error: `Unknown action: ${parsed.action}`,
+        receivedData: parsed
+      });
     }
 
     // Step 7: Encrypt the response
