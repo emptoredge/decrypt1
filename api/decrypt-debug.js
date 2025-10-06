@@ -115,27 +115,20 @@ export default async function handler(req, res) {
     };
 
     if (decryptedAesKey.length === 102) {
-      // PKCS1 padding structure: 0x00 0x02 [random padding] 0x00 [actual data]
-      // Find the separator (0x00) after the padding
-      let separatorIndex = -1;
-      for (let i = 2; i < decryptedAesKey.length; i++) {
-        if (decryptedAesKey[i] === 0x00) {
-          separatorIndex = i;
-          break;
+      // Try different offsets to find the correct AES key
+      const possibleOffsets = [0, 2, 6, 8, 16, 32, 64, 70]; // Common offsets
+      debugInfo.aesKeyProcessing.offsetTests = {};
+      
+      for (const offset of possibleOffsets) {
+        if (offset + 32 <= decryptedAesKey.length) {
+          const candidateKey = decryptedAesKey.subarray(offset, offset + 32);
+          debugInfo.aesKeyProcessing.offsetTests[offset] = candidateKey.toString('hex');
         }
       }
       
-      debugInfo.aesKeyProcessing.separatorIndex = separatorIndex;
-      
-      if (separatorIndex !== -1 && (decryptedAesKey.length - separatorIndex - 1) === 32) {
-        // Extract the 32-byte AES key after the separator
-        decryptedAesKey = decryptedAesKey.subarray(separatorIndex + 1);
-        debugInfo.aesKeyProcessing.method = 'PKCS1_structure_parsing';
-      } else {
-        // Fallback: try last 32 bytes
-        decryptedAesKey = decryptedAesKey.subarray(-32);
-        debugInfo.aesKeyProcessing.method = 'last_32_bytes_fallback';
-      }
+      // Use first 32 bytes for now
+      decryptedAesKey = decryptedAesKey.subarray(0, 32);
+      debugInfo.aesKeyProcessing.method = 'first_32_bytes';
     } else if (decryptedAesKey.length > 32) {
       // If still longer, try first 32 bytes
       decryptedAesKey = decryptedAesKey.subarray(0, 32);
@@ -150,42 +143,113 @@ export default async function handler(req, res) {
     debugInfo.aesKeyProcessing.finalLength = decryptedAesKey.length;
     debugInfo.aesKeyProcessing.finalKeyHex = decryptedAesKey.toString('hex');
 
-    // Try AES decryption
+    // Try AES decryption with both CBC and GCM modes
+    const encryptedData = Buffer.from(encrypted_flow_data, "base64");
+    const iv = Buffer.from(initial_vector, "base64");
+    
+    debugInfo.aesDecryption = {
+      encryptedDataLength: encryptedData.length,
+      ivLength: iv.length
+    };
+    
+    // Try AES-GCM first (WhatsApp Flow data_api_version "3.0")
     try {
-      const decipher = createDecipheriv("aes-256-cbc", decryptedAesKey, ivBuffer);
-      let decrypted = decipher.update(flowDataBuffer, null, "utf8");
-      decrypted += decipher.final("utf8");
-
-      debugInfo.aesDecryption = {
+      console.log('Trying AES-256-GCM...');
+      
+      // For AES-GCM, extract auth tag (last 16 bytes) and ciphertext
+      const authTagLength = 16;
+      const authTag = encryptedData.subarray(-authTagLength);
+      const ciphertext = encryptedData.subarray(0, -authTagLength);
+      
+      const gcmDecipher = crypto.createDecipheriv('aes-256-gcm', decryptedAesKey, iv);
+      gcmDecipher.setAuthTag(authTag);
+      
+      let gcmDecrypted = gcmDecipher.update(ciphertext, null, 'utf8');
+      gcmDecrypted += gcmDecipher.final('utf8');
+      
+      debugInfo.aesDecryption.gcm = {
         success: true,
-        decryptedLength: decrypted.length
+        authTagLength: authTagLength,
+        ciphertextLength: ciphertext.length,
+        decryptedLength: gcmDecrypted.length
       };
 
       // Try parse as JSON
       let parsed = null;
       try {
-        parsed = JSON.parse(decrypted);
-        debugInfo.jsonParsing = { success: true };
+        parsed = JSON.parse(gcmDecrypted);
+        debugInfo.jsonParsing = { success: true, mode: 'AES-GCM' };
       } catch (jsonError) {
         debugInfo.jsonParsing = { 
           success: false, 
-          error: jsonError.message 
+          error: jsonError.message,
+          mode: 'AES-GCM'
         };
       }
 
       res.status(200).json({ 
         success: true,
-        decrypted, 
+        decrypted: gcmDecrypted, 
         json: parsed,
+        algorithm: "AES-256-GCM",
         debug: debugInfo
       });
+      return;
 
-    } catch (aesError) {
-      return res.status(500).json({ 
-        error: "AES decryption failed",
-        debug: debugInfo,
-        aesError: aesError.message
-      });
+    } catch (gcmError) {
+      debugInfo.aesDecryption.gcm = {
+        success: false,
+        error: gcmError.message
+      };
+      
+      // Try AES-CBC as fallback
+      try {
+        console.log('AES-GCM failed, trying AES-256-CBC...');
+        
+        const cbcDecipher = crypto.createDecipheriv("aes-256-cbc", decryptedAesKey, iv);
+        let cbcDecrypted = cbcDecipher.update(encryptedData, null, "utf8");
+        cbcDecrypted += cbcDecipher.final("utf8");
+
+        debugInfo.aesDecryption.cbc = {
+          success: true,
+          decryptedLength: cbcDecrypted.length
+        };
+
+        // Try parse as JSON
+        let parsed = null;
+        try {
+          parsed = JSON.parse(cbcDecrypted);
+          debugInfo.jsonParsing = { success: true, mode: 'AES-CBC' };
+        } catch (jsonError) {
+          debugInfo.jsonParsing = { 
+            success: false, 
+            error: jsonError.message,
+            mode: 'AES-CBC'
+          };
+        }
+
+        res.status(200).json({ 
+          success: true,
+          decrypted: cbcDecrypted, 
+          json: parsed,
+          algorithm: "AES-256-CBC",
+          debug: debugInfo
+        });
+        return;
+
+      } catch (cbcError) {
+        debugInfo.aesDecryption.cbc = {
+          success: false,
+          error: cbcError.message
+        };
+        
+        return res.status(500).json({ 
+          error: "AES decryption failed with both GCM and CBC modes",
+          debug: debugInfo,
+          gcmError: gcmError.message,
+          cbcError: cbcError.message
+        });
+      }
     }
 
   } catch (e) {

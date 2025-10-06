@@ -51,23 +51,8 @@ export default async function handler(req, res) {
     // Handle AES key length - WhatsApp sends padded keys
     // Based on debug output, we get 102 bytes but need 32
     if (decryptedAesKey.length === 102) {
-      // PKCS1 padding structure: 0x00 0x02 [random padding] 0x00 [actual data]
-      // Find the separator (0x00) after the padding
-      let separatorIndex = -1;
-      for (let i = 2; i < decryptedAesKey.length; i++) {
-        if (decryptedAesKey[i] === 0x00) {
-          separatorIndex = i;
-          break;
-        }
-      }
-      
-      if (separatorIndex !== -1 && (decryptedAesKey.length - separatorIndex - 1) === 32) {
-        // Extract the 32-byte AES key after the separator
-        decryptedAesKey = decryptedAesKey.subarray(separatorIndex + 1);
-      } else {
-        // Fallback: try last 32 bytes
-        decryptedAesKey = decryptedAesKey.subarray(-32);
-      }
+      // Try the first 32 bytes - WhatsApp might put the key at the beginning
+      decryptedAesKey = decryptedAesKey.subarray(0, 32);
     } else if (decryptedAesKey.length > 32) {
       // If still longer, try first 32 bytes
       decryptedAesKey = decryptedAesKey.subarray(0, 32);
@@ -77,14 +62,22 @@ export default async function handler(req, res) {
       });
     }
 
-    // AES Decrypt Flow Data (AES-256-CBC)
-    const decipher = createDecipheriv(
-      "aes-256-cbc",
-      decryptedAesKey,
-      Buffer.from(initial_vector, "base64")
-    );
-    let decrypted = decipher.update(Buffer.from(encrypted_flow_data, "base64"), null, "utf8");
-    decrypted += decipher.final("utf8");
+    // AES Decrypt Flow Data using AES-GCM (not CBC!)
+    // WhatsApp Flow data_api_version "3.0" uses AES-GCM
+    const encryptedData = Buffer.from(encrypted_flow_data, "base64");
+    const iv = Buffer.from(initial_vector, "base64");
+    
+    // For AES-GCM, we need to extract the auth tag (last 16 bytes typically)
+    // and the actual encrypted data (everything except the last 16 bytes)
+    const authTagLength = 16; // AES-GCM standard auth tag length
+    const authTag = encryptedData.subarray(-authTagLength);
+    const ciphertext = encryptedData.subarray(0, -authTagLength);
+    
+    const decipher = crypto.createDecipheriv('aes-256-gcm', decryptedAesKey, iv);
+    decipher.setAuthTag(authTag);
+    
+    let decrypted = decipher.update(ciphertext, null, 'utf8');
+    decrypted += decipher.final('utf8');
 
     // Try parse as JSON
     let parsed;
@@ -94,7 +87,12 @@ export default async function handler(req, res) {
       parsed = null;
     }
 
-    res.status(200).json({ decrypted, json: parsed });
+    res.status(200).json({ 
+      decrypted, 
+      json: parsed,
+      algorithm: "AES-256-GCM",
+      authTagLength: authTagLength
+    });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
