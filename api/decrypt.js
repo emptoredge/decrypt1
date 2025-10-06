@@ -67,17 +67,91 @@ export default async function handler(req, res) {
     const encryptedData = Buffer.from(encrypted_flow_data, "base64");
     const iv = Buffer.from(initial_vector, "base64");
     
-    // For AES-GCM, we need to extract the auth tag (last 16 bytes typically)
-    // and the actual encrypted data (everything except the last 16 bytes)
-    const authTagLength = 16; // AES-GCM standard auth tag length
-    const authTag = encryptedData.subarray(-authTagLength);
-    const ciphertext = encryptedData.subarray(0, -authTagLength);
+    // Try different auth tag configurations for AES-GCM
+    const authTagLengths = [16, 12, 8]; // Common GCM auth tag lengths
+    let decrypted = null;
+    let usedConfig = null;
     
-    const decipher = crypto.createDecipheriv('aes-256-gcm', decryptedAesKey, iv);
-    decipher.setAuthTag(authTag);
+    for (const tagLength of authTagLengths) {
+      if (encryptedData.length <= tagLength) continue;
+      
+      try {
+        // Try auth tag at the end
+        const authTag = encryptedData.subarray(-tagLength);
+        const ciphertext = encryptedData.subarray(0, -tagLength);
+        
+        const decipher = crypto.createDecipheriv('aes-256-gcm', decryptedAesKey, iv);
+        decipher.setAuthTag(authTag);
+        
+        let result = decipher.update(ciphertext, null, 'utf8');
+        result += decipher.final('utf8');
+        
+        decrypted = result;
+        usedConfig = { tagLength, position: 'end' };
+        break;
+      } catch (endError) {
+        // Try auth tag at the beginning
+        try {
+          const authTag = encryptedData.subarray(0, tagLength);
+          const ciphertext = encryptedData.subarray(tagLength);
+          
+          const decipher = crypto.createDecipheriv('aes-256-gcm', decryptedAesKey, iv);
+          decipher.setAuthTag(authTag);
+          
+          let result = decipher.update(ciphertext, null, 'utf8');
+          result += decipher.final('utf8');
+          
+          decrypted = result;
+          usedConfig = { tagLength, position: 'beginning' };
+          break;
+        } catch (beginError) {
+          // Continue to next tag length
+          continue;
+        }
+      }
+    }
     
-    let decrypted = decipher.update(ciphertext, null, 'utf8');
-    decrypted += decipher.final('utf8');
+    // If AES-GCM didn't work, fall back to trying different AES key offsets with GCM
+    if (!decrypted) {
+      const offsetsToTry = [2, 6, 8, 16, 32, 64, 70];
+      
+      for (const offset of offsetsToTry) {
+        if (offset + 32 > decryptedAesKey.length) continue;
+        
+        const altKey = decryptedAesKey.subarray(offset, offset + 32);
+        
+        for (const tagLength of authTagLengths) {
+          if (encryptedData.length <= tagLength) continue;
+          
+          try {
+            const authTag = encryptedData.subarray(-tagLength);
+            const ciphertext = encryptedData.subarray(0, -tagLength);
+            
+            const decipher = crypto.createDecipheriv('aes-256-gcm', altKey, iv);
+            decipher.setAuthTag(authTag);
+            
+            let result = decipher.update(ciphertext, null, 'utf8');
+            result += decipher.final('utf8');
+            
+            decrypted = result;
+            usedConfig = { offset, tagLength, position: 'end' };
+            break;
+          } catch (error) {
+            continue;
+          }
+        }
+        
+        if (decrypted) break;
+      }
+    }
+    
+    if (!decrypted) {
+      return res.status(500).json({ 
+        error: "AES-GCM decryption failed with all configurations",
+        encryptedDataLength: encryptedData.length,
+        availableOffsets: [0, 2, 6, 8, 16, 32, 64, 70]
+      });
+    }
 
     // Try parse as JSON
     let parsed;
@@ -91,7 +165,7 @@ export default async function handler(req, res) {
       decrypted, 
       json: parsed,
       algorithm: "AES-256-GCM",
-      authTagLength: authTagLength
+      config: usedConfig
     });
   } catch (e) {
     res.status(500).json({ error: e.message });
