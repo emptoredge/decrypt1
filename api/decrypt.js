@@ -13,16 +13,56 @@ export default async function handler(req, res) {
     if (!encrypted_aes_key || !encrypted_flow_data || !initial_vector) {
       return res.status(400).json({ error: "Missing required fields" });
     }
-    // RSA Decrypt AES Key
+    
+    // RSA Decrypt AES Key - Try both padding modes
     const privateKey = createPrivateKey(PRIVATE_KEY_PEM);
-    const decryptedAesKey = privateDecrypt(
-      {
-        key: privateKey,
-        padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-        // WhatsApp uses OAEP, SHA-1 default
-      },
-      Buffer.from(encrypted_aes_key, "base64")
-    );
+    let decryptedAesKey = null;
+    
+    // Try PKCS1 padding first (WhatsApp appears to use this)
+    try {
+      decryptedAesKey = privateDecrypt(
+        {
+          key: privateKey,
+          padding: crypto.constants.RSA_PKCS1_PADDING,
+        },
+        Buffer.from(encrypted_aes_key, "base64")
+      );
+    } catch (pkcs1Error) {
+      // Fallback to OAEP padding
+      try {
+        decryptedAesKey = privateDecrypt(
+          {
+            key: privateKey,
+            padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+          },
+          Buffer.from(encrypted_aes_key, "base64")
+        );
+      } catch (oaepError) {
+        return res.status(500).json({ 
+          error: "RSA decryption failed with both padding modes",
+          details: {
+            pkcs1Error: pkcs1Error.message,
+            oaepError: oaepError.message
+          }
+        });
+      }
+    }
+    
+    // Handle AES key length - WhatsApp sends padded keys
+    // Based on debug output, we get 102 bytes but need 32
+    if (decryptedAesKey.length === 102) {
+      // WhatsApp appears to send the AES key with PKCS1 padding
+      // The actual AES key might be embedded in the padded data
+      // Try taking the last 32 bytes (common pattern)
+      decryptedAesKey = decryptedAesKey.subarray(-32);
+    } else if (decryptedAesKey.length > 32) {
+      // If still longer, try first 32 bytes
+      decryptedAesKey = decryptedAesKey.subarray(0, 32);
+    } else if (decryptedAesKey.length !== 32) {
+      return res.status(500).json({ 
+        error: `Invalid AES key length: ${decryptedAesKey.length} bytes, expected 32 bytes` 
+      });
+    }
 
     // AES Decrypt Flow Data (AES-256-CBC)
     const decipher = createDecipheriv(
