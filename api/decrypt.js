@@ -1,5 +1,5 @@
 import { promises as fs } from "fs";
-import { createPrivateKey, privateDecrypt, createDecipheriv } from "crypto";
+import crypto, { createPrivateKey, privateDecrypt, createDecipheriv } from "crypto";
 
 // Optional: Store your private key in Vercel env as PRIVATE_KEY with actual PEM data
 const PRIVATE_KEY_PEM = process.env.PRIVATE_KEY;
