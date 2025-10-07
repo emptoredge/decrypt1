@@ -167,6 +167,22 @@ export default async function handler(req, res) {
           mobile_number: mobileNumber  // Always pass the mobile number forward!
         }
       };
+    } else if (parsed.action === "navigate") {
+      // Handle flow navigation/initialization
+      console.log('🧭 Navigate action received:', parsed);
+      
+      // For navigate action, start with the first screen
+      responseData = {
+        screen: "PHONE_NUMBER_SCREEN", 
+        data: {}
+      };
+      
+      // Set form data for navigate action
+      formData = {
+        screen: "navigate",
+        data: parsed.data || {},
+        timestamp: new Date().toISOString()
+      };
     } else {
       return res.status(500).json({ 
         error: `Unknown action: ${parsed.action}`,

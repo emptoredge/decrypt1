@@ -194,6 +194,16 @@ export default async function handler(req, res) {
         }
       };
       
+    } else if (parsed.action === "navigate") {
+      // Handle flow navigation/initialization
+      console.log('🧭 Navigate action received:', parsed);
+      
+      // For navigate action, start with the first screen
+      responseData = {
+        screen: "PHONE_NUMBER_SCREEN",
+        data: {}
+      };
+      
     } else {
       // Unknown action
       return res.status(500).json({ 
