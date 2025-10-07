@@ -1,5 +1,8 @@
 {
   "routing_model": {
+    "PHONE_NUMBER_SCREEN": [
+      "FIRST_NAME"
+    ],
     "FIRST_NAME": [
       "LAST_NAME"
     ],
@@ -87,6 +90,41 @@
   "version": "7.3",
   "screens": [
     {
+      "id": "PHONE_NUMBER_SCREEN",
+      "title": "Contact Information",
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "form",
+            "children": [
+              {
+                "type": "TextBody",
+                "text": "To begin, please enter your WhatsApp number."
+              },
+              {
+                "type": "TextInput",
+                "name": "PHONE_NUMBER_VAL",
+                "label": "Phone Number",
+                "input-type": "phone"
+              },
+              {
+                "type": "Footer",
+                "label": "Next",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "mobile_number": "${form.PHONE_NUMBER_VAL}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "id": "FIRST_NAME",
       "title": "First Name",
       "data": {
@@ -102,8 +140,15 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "First Name" },
-              { "type": "TextInput", "name": "FIRST_NAME_VAL", "label": "First Name" },
+              {
+                "type": "TextBody",
+                "text": "What is your first name?"
+              },
+              {
+                "type": "TextInput",
+                "name": "FIRST_NAME_VAL",
+                "label": "First Name"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -111,7 +156,7 @@
                   "name": "data_exchange",
                   "payload": {
                     "first_name": "${form.FIRST_NAME_VAL}",
-                    "mobile_number": "${user.wa_id}"
+                    "mobile_number": "${data.mobile_number}"
                   }
                 }
               }
@@ -136,8 +181,15 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Last Name" },
-              { "type": "TextInput", "name": "LAST_NAME_VAL", "label": "Last Name" },
+              {
+                "type": "TextBody",
+                "text": "What is your last name?"
+              },
+              {
+                "type": "TextInput",
+                "name": "LAST_NAME_VAL",
+                "label": "Last Name"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -157,7 +209,7 @@
     {
       "id": "DATE_OF_BIRTH",
       "title": "Date Of Birth",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -170,8 +222,15 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Date Of Birth" },
-              { "type": "DatePicker", "name": "DATE_OF_BIRTH_VAL", "label": "Date Of Birth" },
+              {
+                "type": "TextBody",
+                "text": "What is your date of birth?"
+              },
+              {
+                "type": "DatePicker",
+                "name": "DATE_OF_BIRTH_VAL",
+                "label": "Date Of Birth"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -190,8 +249,8 @@
     },
     {
       "id": "HEIGHT_CM",
-      "title": "Height Cm",
-       "data": {
+      "title": "Height",
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -204,8 +263,16 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Height (cm)" },
-              { "type": "TextInput", "name": "HEIGHT_CM_VAL", "label": "Height (cm)", "input-type": "number" },
+              {
+                "type": "TextBody",
+                "text": "What is your height in centimeters?"
+              },
+              {
+                "type": "TextInput",
+                "name": "HEIGHT_CM_VAL",
+                "label": "Height (cm)",
+                "input-type": "number"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -224,8 +291,8 @@
     },
     {
       "id": "WEIGHT_KG",
-      "title": "Weight Kg",
-       "data": {
+      "title": "Weight",
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -238,8 +305,16 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Weight (kg)" },
-              { "type": "TextInput", "name": "WEIGHT_KG_VAL", "label": "Weight (kg)", "input-type": "number" },
+              {
+                "type": "TextBody",
+                "text": "What is your weight in kilograms?"
+              },
+              {
+                "type": "TextInput",
+                "name": "WEIGHT_KG_VAL",
+                "label": "Weight (kg)",
+                "input-type": "number"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -259,7 +334,7 @@
     {
       "id": "ALLERGIES",
       "title": "Allergies",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -272,8 +347,15 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Any allergies?" },
-              { "type": "TextInput", "name": "ALLERGIES_VAL", "label": "e.g. Peanuts, Gluten" },
+              {
+                "type": "TextBody",
+                "text": "Do you have any allergies? (e.g., Peanuts, Gluten)"
+              },
+              {
+                "type": "TextInput",
+                "name": "ALLERGIES_VAL",
+                "label": "List allergies or type 'None'"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -292,8 +374,8 @@
     },
     {
       "id": "MEDICAL_FLAGS",
-      "title": "Medical Flags",
-       "data": {
+      "title": "Medical Conditions",
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -306,8 +388,15 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Any medical conditions?" },
-              { "type": "TextInput", "name": "MEDICAL_FLAGS_VAL", "label": "e.g. Diabetes, High BP" },
+              {
+                "type": "TextBody",
+                "text": "Any medical conditions? (e.g., Diabetes, High BP)"
+              },
+              {
+                "type": "TextInput",
+                "name": "MEDICAL_FLAGS_VAL",
+                "label": "List conditions or type 'None'"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -327,7 +416,7 @@
     {
       "id": "SUPPLEMENTS_TAKING",
       "title": "Supplements",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -340,8 +429,15 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Any supplements you take?" },
-              { "type": "TextInput", "name": "SUPPLEMENTS_TAKING_VAL", "label": "e.g. Vitamin D, Protein" },
+              {
+                "type": "TextBody",
+                "text": "Are you taking any supplements?"
+              },
+              {
+                "type": "TextInput",
+                "name": "SUPPLEMENTS_TAKING_VAL",
+                "label": "List supplements or type 'None'"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -361,7 +457,7 @@
     {
       "id": "WAKE_TIME",
       "title": "Wake Time",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -374,8 +470,15 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "What time do you wake up?" },
-              { "type": "TextInput", "name": "WAKE_TIME_VAL", "label": "e.g. 7:00 AM" },
+              {
+                "type": "TextBody",
+                "text": "What time do you usually wake up?"
+              },
+              {
+                "type": "TextInput",
+                "name": "WAKE_TIME_VAL",
+                "label": "e.g., 7:00 AM"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -395,7 +498,7 @@
     {
       "id": "SLEEP_TIME",
       "title": "Sleep Time",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -408,8 +511,15 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "What time do you sleep?" },
-              { "type": "TextInput", "name": "SLEEP_TIME_VAL", "label": "e.g. 11:00 PM" },
+              {
+                "type": "TextBody",
+                "text": "What time do you usually sleep?"
+              },
+              {
+                "type": "TextInput",
+                "name": "SLEEP_TIME_VAL",
+                "label": "e.g., 11:00 PM"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -429,7 +539,7 @@
     {
       "id": "CITY",
       "title": "City",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -442,8 +552,15 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "What city do you live in?" },
-              { "type": "TextInput", "name": "CITY_VAL", "label": "City" },
+              {
+                "type": "TextBody",
+                "text": "What city do you live in?"
+              },
+              {
+                "type": "TextInput",
+                "name": "CITY_VAL",
+                "label": "City"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -463,7 +580,7 @@
     {
       "id": "COUNTRY",
       "title": "Country",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -476,8 +593,15 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "What country do you live in?" },
-              { "type": "TextInput", "name": "COUNTRY_VAL", "label": "Country" },
+              {
+                "type": "TextBody",
+                "text": "What country do you live in?"
+              },
+              {
+                "type": "TextInput",
+                "name": "COUNTRY_VAL",
+                "label": "Country"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -497,7 +621,7 @@
     {
       "id": "SEX_AT_BIRTH",
       "title": "Sex",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -510,8 +634,25 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Sex assigned at birth" },
-              { "type": "RadioButtonsGroup", "name": "SEX_AT_BIRTH_VAL", "label": "Sex", "data-source": [{ "id": "male", "title": "Male" }, { "id": "female", "title": "Female" }] },
+              {
+                "type": "TextBody",
+                "text": "Sex assigned at birth"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "SEX_AT_BIRTH_VAL",
+                "label": "Sex",
+                "data-source": [
+                  {
+                    "id": "male",
+                    "title": "Male"
+                  },
+                  {
+                    "id": "female",
+                    "title": "Female"
+                  }
+                ]
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -531,7 +672,7 @@
     {
       "id": "PREGNANCY_STATUS",
       "title": "Pregnancy",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -544,8 +685,25 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Pregnancy Status (if applicable)" },
-              { "type": "RadioButtonsGroup", "name": "PREGNANCY_STATUS_VAL", "label": "Status", "data-source": [{ "id": "none", "title": "Not Applicable" }, { "id": "t1", "title": "Trimester 1" }] },
+              {
+                "type": "TextBody",
+                "text": "Pregnancy Status (if applicable)"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "PREGNANCY_STATUS_VAL",
+                "label": "Status",
+                "data-source": [
+                  {
+                    "id": "none",
+                    "title": "Not Applicable"
+                  },
+                  {
+                    "id": "t1",
+                    "title": "Trimester 1"
+                  }
+                ]
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -565,7 +723,7 @@
     {
       "id": "LACTATION_STATUS",
       "title": "Lactation",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -578,8 +736,25 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Lactation Status (if applicable)" },
-              { "type": "RadioButtonsGroup", "name": "LACTATION_STATUS_VAL", "label": "Status", "data-source": [{ "id": "none", "title": "Not Applicable" }, { "id": "yes", "title": "Yes" }] },
+              {
+                "type": "TextBody",
+                "text": "Lactation Status (if applicable)"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "LACTATION_STATUS_VAL",
+                "label": "Status",
+                "data-source": [
+                  {
+                    "id": "none",
+                    "title": "Not Applicable"
+                  },
+                  {
+                    "id": "yes",
+                    "title": "Yes"
+                  }
+                ]
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -599,7 +774,7 @@
     {
       "id": "ACTIVITY_LEVEL",
       "title": "Activity Level",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -612,8 +787,25 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Describe your activity level." },
-              { "type": "RadioButtonsGroup", "name": "ACTIVITY_LEVEL_VAL", "label": "Activity", "data-source": [{ "id": "sedentary", "title": "Sedentary" }, { "id": "moderate", "title": "Moderate" }] },
+              {
+                "type": "TextBody",
+                "text": "Describe your activity level."
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "ACTIVITY_LEVEL_VAL",
+                "label": "Activity",
+                "data-source": [
+                  {
+                    "id": "sedentary",
+                    "title": "Sedentary"
+                  },
+                  {
+                    "id": "moderate",
+                    "title": "Moderate"
+                  }
+                ]
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -633,7 +825,7 @@
     {
       "id": "DIET_TYPE",
       "title": "Diet",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -646,8 +838,25 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "What is your dietary preference?" },
-              { "type": "RadioButtonsGroup", "name": "DIET_TYPE_VAL", "label": "Diet", "data-source": [{ "id": "veg", "title": "Vegetarian" }, { "id": "nonveg", "title": "Non-Vegetarian" }] },
+              {
+                "type": "TextBody",
+                "text": "What is your dietary preference?"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "DIET_TYPE_VAL",
+                "label": "Diet",
+                "data-source": [
+                  {
+                    "id": "veg",
+                    "title": "Vegetarian"
+                  },
+                  {
+                    "id": "nonveg",
+                    "title": "Non-Vegetarian"
+                  }
+                ]
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -667,7 +876,7 @@
     {
       "id": "LANGUAGE_PREFERENCE",
       "title": "Language",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -680,8 +889,25 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Preferred Language" },
-              { "type": "RadioButtonsGroup", "name": "LANGUAGE_PREFERENCE_VAL", "label": "Language", "data-source": [{ "id": "en", "title": "English" }, { "id": "hi", "title": "Hindi" }] },
+              {
+                "type": "TextBody",
+                "text": "Preferred Language"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "LANGUAGE_PREFERENCE_VAL",
+                "label": "Language",
+                "data-source": [
+                  {
+                    "id": "en",
+                    "title": "English"
+                  },
+                  {
+                    "id": "hi",
+                    "title": "Hindi"
+                  }
+                ]
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -701,7 +927,7 @@
     {
       "id": "SPICE_LEVEL",
       "title": "Spice Level",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -714,8 +940,25 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "How spicy do you like your food?" },
-              { "type": "RadioButtonsGroup", "name": "SPICE_LEVEL_VAL", "label": "Spice", "data-source": [{ "id": "low", "title": "Low" }, { "id": "medium", "title": "Medium" }] },
+              {
+                "type": "TextBody",
+                "text": "How spicy do you like your food?"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "SPICE_LEVEL_VAL",
+                "label": "Spice",
+                "data-source": [
+                  {
+                    "id": "low",
+                    "title": "Low"
+                  },
+                  {
+                    "id": "medium",
+                    "title": "Medium"
+                  }
+                ]
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -735,7 +978,7 @@
     {
       "id": "CUISINE_PREFERENCE",
       "title": "Cuisine",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -748,8 +991,25 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Favorite Cuisine" },
-              { "type": "Dropdown", "name": "CUISINE_PREFERENCE_VAL", "label": "Cuisine", "data-source": [{ "id": "indian", "title": "Indian" }, { "id": "italian", "title": "Italian" }] },
+              {
+                "type": "TextBody",
+                "text": "Favorite Cuisine"
+              },
+              {
+                "type": "Dropdown",
+                "name": "CUISINE_PREFERENCE_VAL",
+                "label": "Cuisine",
+                "data-source": [
+                  {
+                    "id": "indian",
+                    "title": "Indian"
+                  },
+                  {
+                    "id": "italian",
+                    "title": "Italian"
+                  }
+                ]
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -769,7 +1029,7 @@
     {
       "id": "COOKING_OIL_USES",
       "title": "Cooking Oil",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -782,8 +1042,25 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Primary cooking oil" },
-              { "type": "Dropdown", "name": "COOKING_OIL_USES_VAL", "label": "Oil", "data-source": [{ "id": "sunflower", "title": "Sunflower" }, { "id": "olive", "title": "Olive" }] },
+              {
+                "type": "TextBody",
+                "text": "Primary cooking oil"
+              },
+              {
+                "type": "Dropdown",
+                "name": "COOKING_OIL_USES_VAL",
+                "label": "Oil",
+                "data-source": [
+                  {
+                    "id": "sunflower",
+                    "title": "Sunflower"
+                  },
+                  {
+                    "id": "olive",
+                    "title": "Olive"
+                  }
+                ]
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -803,7 +1080,7 @@
     {
       "id": "COOKING_FACILITIES",
       "title": "Facilities",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -816,8 +1093,25 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Cooking facilities available" },
-              { "type": "Dropdown", "name": "COOKING_FACILITIES_VAL", "label": "Facilities", "data-source": [{ "id": "stovetop", "title": "Stovetop" }, { "id": "microwave", "title": "Microwave" }] },
+              {
+                "type": "TextBody",
+                "text": "Cooking facilities available"
+              },
+              {
+                "type": "Dropdown",
+                "name": "COOKING_FACILITIES_VAL",
+                "label": "Facilities",
+                "data-source": [
+                  {
+                    "id": "stovetop",
+                    "title": "Stovetop"
+                  },
+                  {
+                    "id": "microwave",
+                    "title": "Microwave"
+                  }
+                ]
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -837,7 +1131,7 @@
     {
       "id": "EATING_OUT_PER_WEEK",
       "title": "Eating Out",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -850,8 +1144,25 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "How often do you eat out?" },
-              { "type": "RadioButtonsGroup", "name": "EATING_OUT_PER_WEEK_VAL", "label": "Frequency", "data-source": [{ "id": "1-2", "title": "1-2 times/week" }, { "id": "3-5", "title": "3-5 times/week" }] },
+              {
+                "type": "TextBody",
+                "text": "How often do you eat out?"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "EATING_OUT_PER_WEEK_VAL",
+                "label": "Frequency",
+                "data-source": [
+                  {
+                    "id": "1-2",
+                    "title": "1-2 times/week"
+                  },
+                  {
+                    "id": "3-5",
+                    "title": "3-5 times/week"
+                  }
+                ]
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -871,7 +1182,7 @@
     {
       "id": "FASTING_PATTERN",
       "title": "Fasting",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -884,8 +1195,25 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Do you follow a fasting pattern?" },
-              { "type": "Dropdown", "name": "FASTING_PATTERN_VAL", "label": "Pattern", "data-source": [{ "id": "none", "title": "None" }, { "id": "16_8", "title": "Intermittent (16:8)" }] },
+              {
+                "type": "TextBody",
+                "text": "Do you follow a fasting pattern?"
+              },
+              {
+                "type": "Dropdown",
+                "name": "FASTING_PATTERN_VAL",
+                "label": "Pattern",
+                "data-source": [
+                  {
+                    "id": "none",
+                    "title": "None"
+                  },
+                  {
+                    "id": "16_8",
+                    "title": "Intermittent (16:8)"
+                  }
+                ]
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -905,7 +1233,7 @@
     {
       "id": "CAFFEINE_PREFERENCE",
       "title": "Caffeine",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -918,8 +1246,25 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Caffeine consumption" },
-              { "type": "RadioButtonsGroup", "name": "CAFFEINE_PREFERENCE_VAL", "label": "Intake", "data-source": [{ "id": "low", "title": "Low" }, { "id": "high", "title": "High" }] },
+              {
+                "type": "TextBody",
+                "text": "Caffeine consumption"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "CAFFEINE_PREFERENCE_VAL",
+                "label": "Intake",
+                "data-source": [
+                  {
+                    "id": "low",
+                    "title": "Low"
+                  },
+                  {
+                    "id": "high",
+                    "title": "High"
+                  }
+                ]
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -939,7 +1284,7 @@
     {
       "id": "ALCOHOL_FREQUENCY",
       "title": "Alcohol",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -952,8 +1297,25 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Alcohol consumption" },
-              { "type": "RadioButtonsGroup", "name": "ALCOHOL_FREQUENCY_VAL", "label": "Frequency", "data-source": [{ "id": "never", "title": "Never" }, { "id": "occasionally", "title": "Occasionally" }] },
+              {
+                "type": "TextBody",
+                "text": "Alcohol consumption"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "ALCOHOL_FREQUENCY_VAL",
+                "label": "Frequency",
+                "data-source": [
+                  {
+                    "id": "never",
+                    "title": "Never"
+                  },
+                  {
+                    "id": "occasionally",
+                    "title": "Occasionally"
+                  }
+                ]
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -973,7 +1335,7 @@
     {
       "id": "GOALS",
       "title": "Goals",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -986,8 +1348,25 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "What are your main goals?" },
-              { "type": "CheckboxGroup", "name": "GOALS_VAL", "label": "Select goals", "data-source": [{ "id": "weight_loss", "title": "Weight Loss" }, { "id": "muscle_gain", "title": "Muscle Gain" }] },
+              {
+                "type": "TextBody",
+                "text": "What are your main goals?"
+              },
+              {
+                "type": "CheckboxGroup",
+                "name": "GOALS_VAL",
+                "label": "Select goals",
+                "data-source": [
+                  {
+                    "id": "weight_loss",
+                    "title": "Weight Loss"
+                  },
+                  {
+                    "id": "muscle_gain",
+                    "title": "Muscle Gain"
+                  }
+                ]
+              },
               {
                 "type": "Footer",
                 "label": "Submit",
@@ -1012,9 +1391,21 @@
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
-          { "type": "TextHeading", "text": "Thank you!" },
-          { "type": "TextBody", "text": "Your responses have been submitted." },
-          { "type": "Footer", "label": "Done", "on-click-action": { "name": "complete" } }
+          {
+            "type": "TextHeading",
+            "text": "Thank you!"
+          },
+          {
+            "type": "TextBody",
+            "text": "Your responses have been submitted."
+          },
+          {
+            "type": "Footer",
+            "label": "Done",
+            "on-click-action": {
+              "name": "complete"
+            }
+          }
         ]
       }
     }

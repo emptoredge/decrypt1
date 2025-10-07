@@ -107,14 +107,20 @@ export default async function handler(req, res) {
       const currentScreen = parsed.screen;
       const submittedData = parsed.data || {};
       
-      // Capture form data for business logic
+      // CRITICAL: Extract mobile number from submitted data
+      const mobileNumber = submittedData.mobile_number;
+      
+      // Capture form data for business logic (now includes mobile number!)
       formData = {
         screen: currentScreen,
         data: submittedData,
+        mobileNumber: mobileNumber,
         timestamp: new Date().toISOString()
       };
       
+      // Define the routing model from your flow2.json (includes PHONE_NUMBER_SCREEN)
       const routingModel = {
+        "PHONE_NUMBER_SCREEN": "FIRST_NAME",
         "FIRST_NAME": "LAST_NAME",
         "LAST_NAME": "DATE_OF_BIRTH",
         "DATE_OF_BIRTH": "HEIGHT_CM",
@@ -153,9 +159,13 @@ export default async function handler(req, res) {
         });
       }
       
+      // CRITICAL: For data_exchange, we must pass the mobile number to the next screen
+      // This is the "baton pass" - we receive the mobile number and forward it
       responseData = {
         screen: nextScreen,
-        data: submittedData
+        data: {
+          mobile_number: mobileNumber  // Always pass the mobile number forward!
+        }
       };
     } else {
       return res.status(500).json({ 

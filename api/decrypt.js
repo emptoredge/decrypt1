@@ -132,17 +132,20 @@ export default async function handler(req, res) {
       const currentScreen = parsed.screen;
       const submittedData = parsed.data || {};
       
+      // CRITICAL: Extract mobile number from submitted data
+      const mobileNumber = submittedData.mobile_number;
+      
       // IMPORTANT: Store the submitted data for your business logic
-      // You can log it, save to database, send to webhook, etc.
       console.log('📋 Form Data Received:', {
         screen: currentScreen,
         data: submittedData,
+        mobileNumber: mobileNumber,
         timestamp: new Date().toISOString(),
-        // Note: Mobile number should come from WhatsApp webhook headers or context
       });
       
-      // Define the routing model from your flow.json
+      // Define the routing model from your flow2.json (includes PHONE_NUMBER_SCREEN)
       const routingModel = {
+        "PHONE_NUMBER_SCREEN": "FIRST_NAME",
         "FIRST_NAME": "LAST_NAME",
         "LAST_NAME": "DATE_OF_BIRTH",
         "DATE_OF_BIRTH": "HEIGHT_CM",
@@ -182,10 +185,13 @@ export default async function handler(req, res) {
         });
       }
       
-      // For data_exchange, we need to return the next screen and preserve data
+      // CRITICAL: For data_exchange, we must pass the mobile number to the next screen
+      // This is the "baton pass" - we receive the mobile number and forward it
       responseData = {
         screen: nextScreen,
-        data: submittedData // Pass through the submitted data
+        data: {
+          mobile_number: mobileNumber  // Always pass the mobile number forward!
+        }
       };
       
     } else {
