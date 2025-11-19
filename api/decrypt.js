@@ -143,35 +143,18 @@ export default async function handler(req, res) {
         timestamp: new Date().toISOString(),
       });
       
-      // Define the routing model from your flow2.json (includes PHONE_NUMBER_SCREEN)
+      // Define the routing model from your flow.json (simplified structure)
       const routingModel = {
         "PHONE_NUMBER_SCREEN": "FIRST_NAME",
         "FIRST_NAME": "LAST_NAME",
         "LAST_NAME": "DATE_OF_BIRTH",
-        "DATE_OF_BIRTH": "HEIGHT_CM",
-        "HEIGHT_CM": "WEIGHT_KG",
+        "DATE_OF_BIRTH": "HEIGHT_SCREEN",
+        "HEIGHT_SCREEN": "WEIGHT_KG",
         "WEIGHT_KG": "ALLERGIES",
-        "ALLERGIES": "MEDICAL_FLAGS",
-        "MEDICAL_FLAGS": "SUPPLEMENTS_TAKING",
-        "SUPPLEMENTS_TAKING": "WAKE_TIME",
-        "WAKE_TIME": "SLEEP_TIME",
-        "SLEEP_TIME": "CITY",
-        "CITY": "COUNTRY",
-        "COUNTRY": "SEX_AT_BIRTH",
-        "SEX_AT_BIRTH": "PREGNANCY_STATUS",
-        "PREGNANCY_STATUS": "LACTATION_STATUS",
-        "LACTATION_STATUS": "ACTIVITY_LEVEL",
-        "ACTIVITY_LEVEL": "DIET_TYPE",
-        "DIET_TYPE": "LANGUAGE_PREFERENCE",
-        "LANGUAGE_PREFERENCE": "SPICE_LEVEL",
-        "SPICE_LEVEL": "CUISINE_PREFERENCE",
-        "CUISINE_PREFERENCE": "COOKING_OIL_USES",
-        "COOKING_OIL_USES": "COOKING_FACILITIES",
-        "COOKING_FACILITIES": "EATING_OUT_PER_WEEK",
-        "EATING_OUT_PER_WEEK": "FASTING_PATTERN",
-        "FASTING_PATTERN": "CAFFEINE_PREFERENCE",
-        "CAFFEINE_PREFERENCE": "ALCOHOL_FREQUENCY",
-        "ALCOHOL_FREQUENCY": "GOALS",
+        "ALLERGIES": "COUNTRY",
+        "COUNTRY": "CITY",
+        "CITY": "SUPPLEMENTS_TAKING",
+        "SUPPLEMENTS_TAKING": "GOALS",
         "GOALS": "THANK_YOU_SCREEN"
       };
       

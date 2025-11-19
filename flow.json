@@ -1,5 +1,8 @@
 {
   "routing_model": {
+    "PHONE_NUMBER_SCREEN": [
+      "FIRST_NAME"
+    ],
     "FIRST_NAME": [
       "LAST_NAME"
     ],
@@ -7,75 +10,24 @@
       "DATE_OF_BIRTH"
     ],
     "DATE_OF_BIRTH": [
-      "HEIGHT_CM"
+      "HEIGHT_SCREEN"
     ],
-    "HEIGHT_CM": [
+    "HEIGHT_SCREEN": [
       "WEIGHT_KG"
     ],
     "WEIGHT_KG": [
       "ALLERGIES"
     ],
     "ALLERGIES": [
-      "MEDICAL_FLAGS"
-    ],
-    "MEDICAL_FLAGS": [
-      "SUPPLEMENTS_TAKING"
-    ],
-    "SUPPLEMENTS_TAKING": [
-      "WAKE_TIME"
-    ],
-    "WAKE_TIME": [
-      "SLEEP_TIME"
-    ],
-    "SLEEP_TIME": [
-      "CITY"
-    ],
-    "CITY": [
       "COUNTRY"
     ],
     "COUNTRY": [
-      "SEX_AT_BIRTH"
+      "CITY"
     ],
-    "SEX_AT_BIRTH": [
-      "PREGNANCY_STATUS"
+    "CITY": [
+      "SUPPLEMENTS_TAKING"
     ],
-    "PREGNANCY_STATUS": [
-      "LACTATION_STATUS"
-    ],
-    "LACTATION_STATUS": [
-      "ACTIVITY_LEVEL"
-    ],
-    "ACTIVITY_LEVEL": [
-      "DIET_TYPE"
-    ],
-    "DIET_TYPE": [
-      "LANGUAGE_PREFERENCE"
-    ],
-    "LANGUAGE_PREFERENCE": [
-      "SPICE_LEVEL"
-    ],
-    "SPICE_LEVEL": [
-      "CUISINE_PREFERENCE"
-    ],
-    "CUISINE_PREFERENCE": [
-      "COOKING_OIL_USES"
-    ],
-    "COOKING_OIL_USES": [
-      "COOKING_FACILITIES"
-    ],
-    "COOKING_FACILITIES": [
-      "EATING_OUT_PER_WEEK"
-    ],
-    "EATING_OUT_PER_WEEK": [
-      "FASTING_PATTERN"
-    ],
-    "FASTING_PATTERN": [
-      "CAFFEINE_PREFERENCE"
-    ],
-    "CAFFEINE_PREFERENCE": [
-      "ALCOHOL_FREQUENCY"
-    ],
-    "ALCOHOL_FREQUENCY": [
+    "SUPPLEMENTS_TAKING": [
       "GOALS"
     ],
     "GOALS": [
@@ -86,6 +38,71 @@
   "data_api_version": "3.0",
   "version": "7.3",
   "screens": [
+    {
+      "id": "PHONE_NUMBER_SCREEN",
+      "title": "Contact Information",
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "form",
+            "children": [
+              {
+                "type": "TextBody",
+                "text": "To begin, please enter your WhatsApp number. Don't skip it."
+              },
+              {
+                "type": "Dropdown",
+                "name": "COUNTRY_CODE_VAL",
+                "label": "Country Code",
+                "required": true,
+                "data-source": [
+                  {
+                    "id": "+91",
+                    "title": "+91 India"
+                  },
+                  {
+                    "id": "+1",
+                    "title": "+1 USA"
+                  },
+                  {
+                    "id": "+44",
+                    "title": "+44 UK"
+                  },
+                  {
+                    "id": "+61",
+                    "title": "+61 Australia"
+                  },
+                  {
+                    "id": "+971",
+                    "title": "+971 UAE"
+                  }
+                ]
+              },
+              {
+                "type": "TextInput",
+                "name": "PHONE_NUMBER_VAL",
+                "label": "Phone Number",
+                "required": true,
+                "input-type": "phone"
+              },
+              {
+                "type": "Footer",
+                "label": "Next",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "country_code": "${form.COUNTRY_CODE_VAL}",
+                    "mobile_number": "${form.PHONE_NUMBER_VAL}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
     {
       "id": "FIRST_NAME",
       "title": "First Name",
@@ -102,8 +119,16 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "First Name" },
-              { "type": "TextInput", "name": "FIRST_NAME_VAL", "label": "First Name" },
+              {
+                "type": "TextBody",
+                "text": "What is your first name?"
+              },
+              {
+                "type": "TextInput",
+                "name": "FIRST_NAME_VAL",
+                "required": true,
+                "label": "First Name"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -111,7 +136,7 @@
                   "name": "data_exchange",
                   "payload": {
                     "first_name": "${form.FIRST_NAME_VAL}",
-                    "mobile_number": "${user.wa_id}"
+                    "mobile_number": "${data.mobile_number}"
                   }
                 }
               }
@@ -136,8 +161,16 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Last Name" },
-              { "type": "TextInput", "name": "LAST_NAME_VAL", "label": "Last Name" },
+              {
+                "type": "TextBody",
+                "text": "What is your last name?"
+              },
+              {
+                "type": "TextInput",
+                "name": "LAST_NAME_VAL",
+                "required": true,
+                "label": "Last Name"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -157,7 +190,7 @@
     {
       "id": "DATE_OF_BIRTH",
       "title": "Date Of Birth",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -170,8 +203,16 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Date Of Birth" },
-              { "type": "DatePicker", "name": "DATE_OF_BIRTH_VAL", "label": "Date Of Birth" },
+              {
+                "type": "TextBody",
+                "text": "What is your date of birth?"
+              },
+              {
+                "type": "DatePicker",
+                "name": "DATE_OF_BIRTH_VAL",
+                "required": true,
+                "label": "Date Of Birth"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -189,9 +230,9 @@
       }
     },
     {
-      "id": "HEIGHT_CM",
-      "title": "Height Cm",
-       "data": {
+      "id": "HEIGHT_SCREEN",
+      "title": "Height",
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -204,15 +245,52 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Height (cm)" },
-              { "type": "TextInput", "name": "HEIGHT_CM_VAL", "label": "Height (cm)", "input-type": "number" },
+              {
+                "type": "TextBody",
+                "text": "What is your height?"
+              },
+              {
+                "type": "TextBody",
+                "text": "Enter in centimeters:"
+              },
+              {
+                "type": "TextInput",
+                "name": "HEIGHT_CM_VAL",
+                "label": "Height (cm)",
+                "input-type": "text",
+                "required": false
+              },
+              {
+                "type": "TextBody",
+                "text": "OR"
+              },
+              {
+                "type": "TextBody",
+                "text": "Enter in feet and inches:"
+              },
+              {
+                "type": "TextInput",
+                "name": "HEIGHT_FT_VAL",
+                "label": "Feet",
+                "input-type": "text",
+                "required": false
+              },
+              {
+                "type": "TextInput",
+                "name": "HEIGHT_IN_VAL",
+                "label": "Inches",
+                "input-type": "text",
+                "required": false
+              },
               {
                 "type": "Footer",
                 "label": "Next",
                 "on-click-action": {
                   "name": "data_exchange",
                   "payload": {
-                    "height": "${form.HEIGHT_CM_VAL}",
+                    "height_cm": "${form.HEIGHT_CM_VAL}",
+                    "height_ft": "${form.HEIGHT_FT_VAL}",
+                    "height_in": "${form.HEIGHT_IN_VAL}",
                     "mobile_number": "${data.mobile_number}"
                   }
                 }
@@ -224,8 +302,8 @@
     },
     {
       "id": "WEIGHT_KG",
-      "title": "Weight Kg",
-       "data": {
+      "title": "Weight",
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -238,15 +316,39 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Weight (kg)" },
-              { "type": "TextInput", "name": "WEIGHT_KG_VAL", "label": "Weight (kg)", "input-type": "number" },
+              {
+                "type": "TextBody",
+                "text": "What is your weight?"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "WEIGHT_UNIT",
+                "label": "Select unit",
+                "data-source": [
+                  {
+                    "id": "kg",
+                    "title": "Kilograms (kg)"
+                  },
+                  {
+                    "id": "lb",
+                    "title": "Pounds (lb)"
+                  }
+                ]
+              },
+              {
+                "type": "TextInput",
+                "name": "WEIGHT_VAL",
+                "label": "Enter weight",
+                "input-type": "number"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
                 "on-click-action": {
                   "name": "data_exchange",
                   "payload": {
-                    "weight": "${form.WEIGHT_KG_VAL}",
+                    "weight": "${form.WEIGHT_VAL}",
+                    "weight_unit": "${form.WEIGHT_UNIT}",
                     "mobile_number": "${data.mobile_number}"
                   }
                 }
@@ -259,7 +361,7 @@
     {
       "id": "ALLERGIES",
       "title": "Allergies",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -272,8 +374,52 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Any allergies?" },
-              { "type": "TextInput", "name": "ALLERGIES_VAL", "label": "e.g. Peanuts, Gluten" },
+              {
+                "type": "TextBody",
+                "text": "Do you have any allergies?"
+              },
+              {
+                "type": "CheckboxGroup",
+                "name": "ALLERGIES_VAL",
+                "label": "Select allergies",
+                "required": true,
+                "data-source": [
+                  {
+                    "id": "none",
+                    "title": "None"
+                  },
+                  {
+                    "id": "gluten",
+                    "title": "Gluten"
+                  },
+                  {
+                    "id": "dairy",
+                    "title": "Dairy"
+                  },
+                  {
+                    "id": "peanuts",
+                    "title": "Peanuts"
+                  },
+                  {
+                    "id": "shellfish",
+                    "title": "Shellfish"
+                  },
+                  {
+                    "id": "soy",
+                    "title": "Soy"
+                  },
+                  {
+                    "id": "other",
+                    "title": "Other"
+                  }
+                ]
+              },
+              {
+                "type": "TextInput",
+                "name": "OTHER_ALLERGY_VAL",
+                "label": "If you selected 'Other', please specify",
+                "input-type": "text"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -281,6 +427,7 @@
                   "name": "data_exchange",
                   "payload": {
                     "allergies": "${form.ALLERGIES_VAL}",
+                    "other_allergy": "${form.OTHER_ALLERGY_VAL}",
                     "mobile_number": "${data.mobile_number}"
                   }
                 }
@@ -291,9 +438,9 @@
       }
     },
     {
-      "id": "MEDICAL_FLAGS",
-      "title": "Medical Flags",
-       "data": {
+      "id": "COUNTRY",
+      "title": "Country",
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -306,117 +453,55 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "Any medical conditions?" },
-              { "type": "TextInput", "name": "MEDICAL_FLAGS_VAL", "label": "e.g. Diabetes, High BP" },
               {
-                "type": "Footer",
-                "label": "Next",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "medical_flags": "${form.MEDICAL_FLAGS_VAL}",
-                    "mobile_number": "${data.mobile_number}"
+                "type": "TextBody",
+                "text": "What country do you live in?"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "COUNTRY_VAL",
+                "label": "Country",
+                "data-source": [
+                  {
+                    "id": "IN",
+                    "title": "India"
+                  },
+                  {
+                    "id": "US",
+                    "title": "United States"
+                  },
+                  {
+                    "id": "GB",
+                    "title": "United Kingdom"
+                  },
+                  {
+                    "id": "CA",
+                    "title": "Canada"
+                  },
+                  {
+                    "id": "AU",
+                    "title": "Australia"
+                  },
+                  {
+                    "id": "other",
+                    "title": "Other"
                   }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "SUPPLEMENTS_TAKING",
-      "title": "Supplements",
-       "data": {
-        "mobile_number": {
-          "type": "string",
-          "__example__": "15550001234"
-        }
-      },
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          {
-            "type": "Form",
-            "name": "form",
-            "children": [
-              { "type": "TextBody", "text": "Any supplements you take?" },
-              { "type": "TextInput", "name": "SUPPLEMENTS_TAKING_VAL", "label": "e.g. Vitamin D, Protein" },
+                ]
+              },
+              {
+                "type": "TextInput",
+                "name": "OTHER_COUNTRY_VAL",
+                "label": "Other country",
+                "input-type": "text"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
                 "on-click-action": {
                   "name": "data_exchange",
                   "payload": {
-                    "supplements": "${form.SUPPLEMENTS_TAKING_VAL}",
-                    "mobile_number": "${data.mobile_number}"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "WAKE_TIME",
-      "title": "Wake Time",
-       "data": {
-        "mobile_number": {
-          "type": "string",
-          "__example__": "15550001234"
-        }
-      },
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          {
-            "type": "Form",
-            "name": "form",
-            "children": [
-              { "type": "TextBody", "text": "What time do you wake up?" },
-              { "type": "TextInput", "name": "WAKE_TIME_VAL", "label": "e.g. 7:00 AM" },
-              {
-                "type": "Footer",
-                "label": "Next",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "wake_time": "${form.WAKE_TIME_VAL}",
-                    "mobile_number": "${data.mobile_number}"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "SLEEP_TIME",
-      "title": "Sleep Time",
-       "data": {
-        "mobile_number": {
-          "type": "string",
-          "__example__": "15550001234"
-        }
-      },
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          {
-            "type": "Form",
-            "name": "form",
-            "children": [
-              { "type": "TextBody", "text": "What time do you sleep?" },
-              { "type": "TextInput", "name": "SLEEP_TIME_VAL", "label": "e.g. 11:00 PM" },
-              {
-                "type": "Footer",
-                "label": "Next",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "sleep_time": "${form.SLEEP_TIME_VAL}",
+                    "country": "${form.COUNTRY_VAL}",
+                    "other_country": "${form.OTHER_COUNTRY_VAL}",
                     "mobile_number": "${data.mobile_number}"
                   }
                 }
@@ -429,7 +514,7 @@
     {
       "id": "CITY",
       "title": "City",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -442,8 +527,15 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "What city do you live in?" },
-              { "type": "TextInput", "name": "CITY_VAL", "label": "City" },
+              {
+                "type": "TextBody",
+                "text": "What city do you live in?"
+              },
+              {
+                "type": "TextInput",
+                "name": "CITY_VAL",
+                "label": "City"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
@@ -461,9 +553,9 @@
       }
     },
     {
-      "id": "COUNTRY",
-      "title": "Country",
-       "data": {
+      "id": "SUPPLEMENTS_TAKING",
+      "title": "Supplements",
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -476,491 +568,22 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "What country do you live in?" },
-              { "type": "TextInput", "name": "COUNTRY_VAL", "label": "Country" },
+              {
+                "type": "TextBody",
+                "text": "Are you taking any Medication? "
+              },
+              {
+                "type": "TextInput",
+                "name": "SUPPLEMENTS_TAKING_VAL",
+                "label": "List supplements or type 'None'"
+              },
               {
                 "type": "Footer",
                 "label": "Next",
                 "on-click-action": {
                   "name": "data_exchange",
                   "payload": {
-                    "country": "${form.COUNTRY_VAL}",
-                    "mobile_number": "${data.mobile_number}"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "SEX_AT_BIRTH",
-      "title": "Sex",
-       "data": {
-        "mobile_number": {
-          "type": "string",
-          "__example__": "15550001234"
-        }
-      },
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          {
-            "type": "Form",
-            "name": "form",
-            "children": [
-              { "type": "TextBody", "text": "Sex assigned at birth" },
-              { "type": "RadioButtonsGroup", "name": "SEX_AT_BIRTH_VAL", "label": "Sex", "data-source": [{ "id": "male", "title": "Male" }, { "id": "female", "title": "Female" }] },
-              {
-                "type": "Footer",
-                "label": "Next",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "sex": "${form.SEX_AT_BIRTH_VAL}",
-                    "mobile_number": "${data.mobile_number}"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "PREGNANCY_STATUS",
-      "title": "Pregnancy",
-       "data": {
-        "mobile_number": {
-          "type": "string",
-          "__example__": "15550001234"
-        }
-      },
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          {
-            "type": "Form",
-            "name": "form",
-            "children": [
-              { "type": "TextBody", "text": "Pregnancy Status (if applicable)" },
-              { "type": "RadioButtonsGroup", "name": "PREGNANCY_STATUS_VAL", "label": "Status", "data-source": [{ "id": "none", "title": "Not Applicable" }, { "id": "t1", "title": "Trimester 1" }] },
-              {
-                "type": "Footer",
-                "label": "Next",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "pregnancy": "${form.PREGNANCY_STATUS_VAL}",
-                    "mobile_number": "${data.mobile_number}"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "LACTATION_STATUS",
-      "title": "Lactation",
-       "data": {
-        "mobile_number": {
-          "type": "string",
-          "__example__": "15550001234"
-        }
-      },
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          {
-            "type": "Form",
-            "name": "form",
-            "children": [
-              { "type": "TextBody", "text": "Lactation Status (if applicable)" },
-              { "type": "RadioButtonsGroup", "name": "LACTATION_STATUS_VAL", "label": "Status", "data-source": [{ "id": "none", "title": "Not Applicable" }, { "id": "yes", "title": "Yes" }] },
-              {
-                "type": "Footer",
-                "label": "Next",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "lactation": "${form.LACTATION_STATUS_VAL}",
-                    "mobile_number": "${data.mobile_number}"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "ACTIVITY_LEVEL",
-      "title": "Activity Level",
-       "data": {
-        "mobile_number": {
-          "type": "string",
-          "__example__": "15550001234"
-        }
-      },
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          {
-            "type": "Form",
-            "name": "form",
-            "children": [
-              { "type": "TextBody", "text": "Describe your activity level." },
-              { "type": "RadioButtonsGroup", "name": "ACTIVITY_LEVEL_VAL", "label": "Activity", "data-source": [{ "id": "sedentary", "title": "Sedentary" }, { "id": "moderate", "title": "Moderate" }] },
-              {
-                "type": "Footer",
-                "label": "Next",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "activity_level": "${form.ACTIVITY_LEVEL_VAL}",
-                    "mobile_number": "${data.mobile_number}"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "DIET_TYPE",
-      "title": "Diet",
-       "data": {
-        "mobile_number": {
-          "type": "string",
-          "__example__": "15550001234"
-        }
-      },
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          {
-            "type": "Form",
-            "name": "form",
-            "children": [
-              { "type": "TextBody", "text": "What is your dietary preference?" },
-              { "type": "RadioButtonsGroup", "name": "DIET_TYPE_VAL", "label": "Diet", "data-source": [{ "id": "veg", "title": "Vegetarian" }, { "id": "nonveg", "title": "Non-Vegetarian" }] },
-              {
-                "type": "Footer",
-                "label": "Next",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "diet_type": "${form.DIET_TYPE_VAL}",
-                    "mobile_number": "${data.mobile_number}"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "LANGUAGE_PREFERENCE",
-      "title": "Language",
-       "data": {
-        "mobile_number": {
-          "type": "string",
-          "__example__": "15550001234"
-        }
-      },
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          {
-            "type": "Form",
-            "name": "form",
-            "children": [
-              { "type": "TextBody", "text": "Preferred Language" },
-              { "type": "RadioButtonsGroup", "name": "LANGUAGE_PREFERENCE_VAL", "label": "Language", "data-source": [{ "id": "en", "title": "English" }, { "id": "hi", "title": "Hindi" }] },
-              {
-                "type": "Footer",
-                "label": "Next",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "language": "${form.LANGUAGE_PREFERENCE_VAL}",
-                    "mobile_number": "${data.mobile_number}"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "SPICE_LEVEL",
-      "title": "Spice Level",
-       "data": {
-        "mobile_number": {
-          "type": "string",
-          "__example__": "15550001234"
-        }
-      },
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          {
-            "type": "Form",
-            "name": "form",
-            "children": [
-              { "type": "TextBody", "text": "How spicy do you like your food?" },
-              { "type": "RadioButtonsGroup", "name": "SPICE_LEVEL_VAL", "label": "Spice", "data-source": [{ "id": "low", "title": "Low" }, { "id": "medium", "title": "Medium" }] },
-              {
-                "type": "Footer",
-                "label": "Next",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "spice_level": "${form.SPICE_LEVEL_VAL}",
-                    "mobile_number": "${data.mobile_number}"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "CUISINE_PREFERENCE",
-      "title": "Cuisine",
-       "data": {
-        "mobile_number": {
-          "type": "string",
-          "__example__": "15550001234"
-        }
-      },
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          {
-            "type": "Form",
-            "name": "form",
-            "children": [
-              { "type": "TextBody", "text": "Favorite Cuisine" },
-              { "type": "Dropdown", "name": "CUISINE_PREFERENCE_VAL", "label": "Cuisine", "data-source": [{ "id": "indian", "title": "Indian" }, { "id": "italian", "title": "Italian" }] },
-              {
-                "type": "Footer",
-                "label": "Next",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "cuisine": "${form.CUISINE_PREFERENCE_VAL}",
-                    "mobile_number": "${data.mobile_number}"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "COOKING_OIL_USES",
-      "title": "Cooking Oil",
-       "data": {
-        "mobile_number": {
-          "type": "string",
-          "__example__": "15550001234"
-        }
-      },
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          {
-            "type": "Form",
-            "name": "form",
-            "children": [
-              { "type": "TextBody", "text": "Primary cooking oil" },
-              { "type": "Dropdown", "name": "COOKING_OIL_USES_VAL", "label": "Oil", "data-source": [{ "id": "sunflower", "title": "Sunflower" }, { "id": "olive", "title": "Olive" }] },
-              {
-                "type": "Footer",
-                "label": "Next",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "cooking_oil": "${form.COOKING_OIL_USES_VAL}",
-                    "mobile_number": "${data.mobile_number}"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "COOKING_FACILITIES",
-      "title": "Facilities",
-       "data": {
-        "mobile_number": {
-          "type": "string",
-          "__example__": "15550001234"
-        }
-      },
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          {
-            "type": "Form",
-            "name": "form",
-            "children": [
-              { "type": "TextBody", "text": "Cooking facilities available" },
-              { "type": "Dropdown", "name": "COOKING_FACILITIES_VAL", "label": "Facilities", "data-source": [{ "id": "stovetop", "title": "Stovetop" }, { "id": "microwave", "title": "Microwave" }] },
-              {
-                "type": "Footer",
-                "label": "Next",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "facilities": "${form.COOKING_FACILITIES_VAL}",
-                    "mobile_number": "${data.mobile_number}"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "EATING_OUT_PER_WEEK",
-      "title": "Eating Out",
-       "data": {
-        "mobile_number": {
-          "type": "string",
-          "__example__": "15550001234"
-        }
-      },
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          {
-            "type": "Form",
-            "name": "form",
-            "children": [
-              { "type": "TextBody", "text": "How often do you eat out?" },
-              { "type": "RadioButtonsGroup", "name": "EATING_OUT_PER_WEEK_VAL", "label": "Frequency", "data-source": [{ "id": "1-2", "title": "1-2 times/week" }, { "id": "3-5", "title": "3-5 times/week" }] },
-              {
-                "type": "Footer",
-                "label": "Next",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "eating_out": "${form.EATING_OUT_PER_WEEK_VAL}",
-                    "mobile_number": "${data.mobile_number}"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "FASTING_PATTERN",
-      "title": "Fasting",
-       "data": {
-        "mobile_number": {
-          "type": "string",
-          "__example__": "15550001234"
-        }
-      },
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          {
-            "type": "Form",
-            "name": "form",
-            "children": [
-              { "type": "TextBody", "text": "Do you follow a fasting pattern?" },
-              { "type": "Dropdown", "name": "FASTING_PATTERN_VAL", "label": "Pattern", "data-source": [{ "id": "none", "title": "None" }, { "id": "16_8", "title": "Intermittent (16:8)" }] },
-              {
-                "type": "Footer",
-                "label": "Next",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "fasting": "${form.FASTING_PATTERN_VAL}",
-                    "mobile_number": "${data.mobile_number}"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "CAFFEINE_PREFERENCE",
-      "title": "Caffeine",
-       "data": {
-        "mobile_number": {
-          "type": "string",
-          "__example__": "15550001234"
-        }
-      },
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          {
-            "type": "Form",
-            "name": "form",
-            "children": [
-              { "type": "TextBody", "text": "Caffeine consumption" },
-              { "type": "RadioButtonsGroup", "name": "CAFFEINE_PREFERENCE_VAL", "label": "Intake", "data-source": [{ "id": "low", "title": "Low" }, { "id": "high", "title": "High" }] },
-              {
-                "type": "Footer",
-                "label": "Next",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "caffeine": "${form.CAFFEINE_PREFERENCE_VAL}",
-                    "mobile_number": "${data.mobile_number}"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "ALCOHOL_FREQUENCY",
-      "title": "Alcohol",
-       "data": {
-        "mobile_number": {
-          "type": "string",
-          "__example__": "15550001234"
-        }
-      },
-      "layout": {
-        "type": "SingleColumnLayout",
-        "children": [
-          {
-            "type": "Form",
-            "name": "form",
-            "children": [
-              { "type": "TextBody", "text": "Alcohol consumption" },
-              { "type": "RadioButtonsGroup", "name": "ALCOHOL_FREQUENCY_VAL", "label": "Frequency", "data-source": [{ "id": "never", "title": "Never" }, { "id": "occasionally", "title": "Occasionally" }] },
-              {
-                "type": "Footer",
-                "label": "Next",
-                "on-click-action": {
-                  "name": "data_exchange",
-                  "payload": {
-                    "alcohol": "${form.ALCOHOL_FREQUENCY_VAL}",
+                    "supplements": "${form.SUPPLEMENTS_TAKING_VAL}",
                     "mobile_number": "${data.mobile_number}"
                   }
                 }
@@ -973,7 +596,7 @@
     {
       "id": "GOALS",
       "title": "Goals",
-       "data": {
+      "data": {
         "mobile_number": {
           "type": "string",
           "__example__": "15550001234"
@@ -986,8 +609,57 @@
             "type": "Form",
             "name": "form",
             "children": [
-              { "type": "TextBody", "text": "What are your main goals?" },
-              { "type": "CheckboxGroup", "name": "GOALS_VAL", "label": "Select goals", "data-source": [{ "id": "weight_loss", "title": "Weight Loss" }, { "id": "muscle_gain", "title": "Muscle Gain" }] },
+              {
+                "type": "TextBody",
+                "text": "What are your main goals?"
+              },
+              {
+                "type": "CheckboxGroup",
+                "name": "GOALS_VAL",
+                "label": "Select goals",
+                "data-source": [
+                  {
+                    "id": "weight_loss",
+                    "title": "Weight loss"
+                  },
+                  {
+                    "id": "weight_gain",
+                    "title": "Weight gain"
+                  },
+                  {
+                    "id": "muscle_gain",
+                    "title": "Muscle gain"
+                  },
+                  {
+                    "id": "maintain",
+                    "title": "Maintain"
+                  },
+                  {
+                    "id": "energy",
+                    "title": "Energy"
+                  },
+                  {
+                    "id": "sugar_control",
+                    "title": "Sugar control"
+                  },
+                  {
+                    "id": "heart_health",
+                    "title": "Heart health"
+                  },
+                  {
+                    "id": "gut_health",
+                    "title": "Gut health"
+                  },
+                  {
+                    "id": "bone_health",
+                    "title": "Bone health"
+                  },
+                  {
+                    "id": "other",
+                    "title": "other"
+                  }
+                ]
+              },
               {
                 "type": "Footer",
                 "label": "Submit",
@@ -1012,9 +684,21 @@
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
-          { "type": "TextHeading", "text": "Thank you!" },
-          { "type": "TextBody", "text": "Your responses have been submitted." },
-          { "type": "Footer", "label": "Done", "on-click-action": { "name": "complete" } }
+          {
+            "type": "TextHeading",
+            "text": "Thank you!"
+          },
+          {
+            "type": "TextBody",
+            "text": "By submitting your information, you acknowledge that you are doing so by your own choice and give us consent to use the data you provide."
+          },
+          {
+            "type": "Footer",
+            "label": "Done",
+            "on-click-action": {
+              "name": "complete"
+            }
+          }
         ]
       }
     }
