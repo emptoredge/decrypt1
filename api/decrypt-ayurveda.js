@@ -209,12 +209,11 @@ export default async function handler(req, res) {
           dominantDosha: result
         };
         
-        // Return success response indicating flow completion
+        // Return empty data object to close the flow gracefully
+        // WhatsApp Flows expects this format for terminal screens
         responseData = {
-          status: "completed",
-          data: {
-            ...formData
-          }
+          version: parsed.version,
+          data: {}
         };
       } else if (!nextScreen) {
         return res.status(500).json({ 
