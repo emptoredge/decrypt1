@@ -16,6 +16,10 @@
     {
       "src": "api/decrypt-n8n.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "api/decrypt-ayurveda.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -34,6 +38,10 @@
     {
       "src": "/api/decrypt-n8n",
       "dest": "api/decrypt-n8n.js"
+    },
+    {
+      "src": "/api/decrypt-ayurveda",
+      "dest": "api/decrypt-ayurveda.js"
     }
   ]
 }
