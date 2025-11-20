@@ -107,6 +107,9 @@ export default async function handler(req, res) {
       const currentScreen = parsed.screen;
       const submittedData = parsed.data || {};
       
+      // DEBUG: Log the entire parsed object to see what WhatsApp sends
+      console.log('🔍 Full parsed data:', JSON.stringify(parsed, null, 2));
+      
       // Extract mobile number from the data (baton pass pattern)
       // Filter out template string literals that WhatsApp doesn't evaluate
       let mobileNumber = submittedData.mobile_number || submittedData.PHONE_NUMBER_VAL || null;
@@ -171,54 +174,90 @@ export default async function handler(req, res) {
         "QUESTION_SEVEN": "QUESTION_EIGHT",
         "QUESTION_EIGHT": "QUESTION_NINE",
         "QUESTION_NINE": "QUESTION_TEN",
-        "QUESTION_TEN": "RESULTS"
+        "QUESTION_TEN": "RESULTS",
+        "RESULTS": null  // Terminal screen - end of flow
       };
       
       const nextScreen = routingModel[currentScreen];
       
-      if (!nextScreen) {
+      // Handle terminal screens (RESULTS)
+      if (currentScreen === "RESULTS" || nextScreen === null) {
+        // This is the final screen - calculate results and end flow
+        const answers = submittedData;
+        let countA = 0, countB = 0, countC = 0;
+        
+        // Count answers
+        Object.keys(answers).forEach(key => {
+          if (key.startsWith('q')) {
+            const answer = answers[key];
+            if (answer === 'A') countA++;
+            else if (answer === 'B') countB++;
+            else if (answer === 'C') countC++;
+          }
+        });
+        
+        // Determine dominant dosha
+        let result = 'Balanced';
+        if (countA > countB && countA > countC) result = 'Vata';
+        else if (countB > countA && countB > countC) result = 'Pitta';
+        else if (countC > countA && countC > countB) result = 'Kapha';
+        
+        formData.quizResult = {
+          vataCount: countA,
+          pittaCount: countB,
+          kaphaCount: countC,
+          dominantDosha: result
+        };
+        
+        // Return success response indicating flow completion
+        responseData = {
+          status: "completed",
+          data: {
+            ...formData
+          }
+        };
+      } else if (!nextScreen) {
         return res.status(500).json({ 
-          error: `Unknown screen or final screen: ${currentScreen}`,
+          error: `Unknown screen: ${currentScreen}`,
           debug: { currentScreen, submittedData }
         });
-      }
-      
-      // CRITICAL: Baton pass - always forward mobile number and country code to next screen
-      // On PHONE_NUMBER_SCREEN, we extract from form fields (PHONE_NUMBER_VAL, COUNTRY_CODE_VAL)
-      // On all other screens, we receive from data and pass forward
-      // BUT: Filter out template string literals that WhatsApp doesn't evaluate properly
-      const cleanMobileNumber = mobileNumber && !mobileNumber.includes('${') ? mobileNumber : null;
-      const cleanCountryCode = countryCode && !countryCode.includes('${') ? countryCode : null;
-      
-      const batonPassData = {};
-      if (cleanCountryCode) {
-        batonPassData.country_code = cleanCountryCode;
-      }
-      if (cleanMobileNumber) {
-        batonPassData.mobile_number = cleanMobileNumber;
-      }
-      
-      // Filter out template strings from submitted data
-      const cleanedSubmittedData = {};
-      Object.keys(submittedData).forEach(key => {
-        const value = submittedData[key];
-        // Only include non-template values
-        if (typeof value === 'string' && value.includes('${')) {
-          // Skip template strings
-        } else {
-          cleanedSubmittedData[key] = value;
+      } else {
+        // CRITICAL: Baton pass - always forward mobile number and country code to next screen
+        // On PHONE_NUMBER_SCREEN, we extract from form fields (PHONE_NUMBER_VAL, COUNTRY_CODE_VAL)
+        // On all other screens, we receive from data and pass forward
+        // BUT: Filter out template string literals that WhatsApp doesn't evaluate properly
+        const cleanMobileNumber = mobileNumber && !mobileNumber.includes('${') ? mobileNumber : null;
+        const cleanCountryCode = countryCode && !countryCode.includes('${') ? countryCode : null;
+        
+        const batonPassData = {};
+        if (cleanCountryCode) {
+          batonPassData.country_code = cleanCountryCode;
         }
-      });
-      
-      // Pass all previous data forward including mobile number
-      responseData = {
-        screen: nextScreen,
-        data: {
-          ...batonPassData,
-          ...cleanedSubmittedData
+        if (cleanMobileNumber) {
+          batonPassData.mobile_number = cleanMobileNumber;
         }
-      };
-      
+        
+        // Filter out template strings from submitted data
+        const cleanedSubmittedData = {};
+        Object.keys(submittedData).forEach(key => {
+          const value = submittedData[key];
+          // Only include non-template values
+          if (typeof value === 'string' && value.includes('${')) {
+            // Skip template strings
+          } else {
+            cleanedSubmittedData[key] = value;
+          }
+        });
+        
+        // Pass all previous data forward including mobile number
+        responseData = {
+          screen: nextScreen,
+          data: {
+            ...batonPassData,
+            ...cleanedSubmittedData
+          }
+        };
+      }
     } else if (parsed.action === "navigate") {
       // Handle flow navigation/initialization
       console.log('🧭 Navigate action received:', parsed);

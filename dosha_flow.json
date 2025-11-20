@@ -1,0 +1,702 @@
+{
+  "routing_model": {
+    "PHONE_NUMBER_SCREEN": [
+      "WELCOME_SCREEN"
+    ],
+    "WELCOME_SCREEN": [
+      "QUESTION_ONE"
+    ],
+    "QUESTION_ONE": [
+      "QUESTION_TWO"
+    ],
+    "QUESTION_TWO": [
+      "QUESTION_THREE"
+    ],
+    "QUESTION_THREE": [
+      "QUESTION_FOUR"
+    ],
+    "QUESTION_FOUR": [
+      "QUESTION_FIVE"
+    ],
+    "QUESTION_FIVE": [
+      "QUESTION_SIX"
+    ],
+    "QUESTION_SIX": [
+      "QUESTION_SEVEN"
+    ],
+    "QUESTION_SEVEN": [
+      "QUESTION_EIGHT"
+    ],
+    "QUESTION_EIGHT": [
+      "QUESTION_NINE"
+    ],
+    "QUESTION_NINE": [
+      "QUESTION_TEN"
+    ],
+    "QUESTION_TEN": [
+      "RESULTS"
+    ],
+    "RESULTS": []
+  },
+  "data_api_version": "3.0",
+  "version": "7.3",
+  "screens": [
+        {
+      "id": "PHONE_NUMBER_SCREEN",
+      "title": "Contact Information",
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "form",  
+            "children": [
+              {
+                "type": "TextBody",
+                "text": "To begin, please enter your WhatsApp number."
+              },
+              {
+                "type": "Dropdown",
+                "name": "COUNTRY_CODE_VAL",
+                "label": "Country Code",
+                "required": true,
+                "data-source": [
+                  { "id": "+91", "title": "+91 India" },
+                  { "id": "+1", "title": "+1 USA" },
+                  { "id": "+44", "title": "+44 UK" },
+                  { "id": "+61", "title": "+61 Australia" },
+                  { "id": "+971", "title": "+971 UAE" }
+                ]
+              },
+              {
+                "type": "TextInput",
+                "name": "PHONE_NUMBER_VAL",
+                "label": "Phone Number",
+                "required": true,
+                "input-type": "phone"
+              },
+              {
+                "type": "Footer",
+                "label": "Next",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "country_code": "${form.COUNTRY_CODE_VAL}",  
+                    "mobile_number": "${form.PHONE_NUMBER_VAL}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "WELCOME_SCREEN",
+      "title": "Welcome!",
+      "data": {
+        "country_code": { "type": "string", "__example__": "+91" },
+        "mobile_number": { "type": "string", "__example__": "1234567890" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "welcome_form",
+            "children": [
+              { "type": "TextBody", "text": "👋 Hey there!\nLet’s find out your body’s natural vibe — your Ayurvedic rhythm!" },
+              { "type": "TextBody", "text": "Answer a few fun questions and I’ll help you discover whether your energy leans more toward Vata, Pitta, or Kapha 🌿" },
+              { "type": "TextBody", "text": "Ready? 😄" },
+              {
+                "type": "Footer",
+                "label": "Yes",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "country_code": "${data.country_code}",
+                    "mobile_number": "${data.mobile_number}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "QUESTION_ONE",
+      "title": "Question 1/10",
+      "data": {
+        "country_code": { "type": "string", "__example__": "+91" },
+        "mobile_number": { "type": "string", "__example__": "1234567890" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "form",
+            "children": [
+              { "type": "TextBody", "text": "When you wake up in the morning, how do you usually feel?" },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "q1_answer",
+                "label": "Your Answer",
+                "required": true,
+                "data-source": [
+                  { "id": "A", "title": "A. Bursting with ideas but a little restless 🌪️" },
+                  { "id": "B", "title": "B. Focused and ready to take on the day 🔥" },
+                  { "id": "C", "title": "C. Calm but needs a bit more time to get moving 🌿" }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "Next",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "country_code": "${data.country_code}",
+                    "mobile_number": "${data.mobile_number}",
+                    "q1": "${form.q1_answer}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "QUESTION_TWO",
+      "title": "Question 2/10",
+      "data": {
+        "country_code": { "type": "string", "__example__": "+91" },
+        "mobile_number": { "type": "string", "__example__": "1234567890" },
+        "q1": { "type": "string", "__example__": "A" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "form",
+            "children": [
+              { "type": "TextBody", "text": "How would you describe your energy throughout the day?" },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "q2_answer",
+                "label": "Your Answer",
+                "required": true,
+                "data-source": [
+                  { "id": "A", "title": "A. Comes in bursts — I’m either super active or totally still ⚡" },
+                  { "id": "B", "title": "B. Steady and intense — I like to stay productive 💪" },
+                  { "id": "C", "title": "C. Slow and sustained — I prefer to pace myself ☁️" }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "Next",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "country_code": "${data.country_code}",
+                    "mobile_number": "${data.mobile_number}",
+                    "q1": "${data.q1}",
+                    "q2": "${form.q2_answer}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "QUESTION_THREE",
+      "title": "Question 3/10",
+      "data": {
+        "country_code": { "type": "string", "__example__": "+91" },
+        "mobile_number": { "type": "string", "__example__": "1234567890" },
+        "q1": { "type": "string", "__example__": "A" },
+        "q2": { "type": "string", "__example__": "A" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "form",
+            "children": [
+              { "type": "TextBody", "text": "What best describes your eating style?" },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "q3_answer",
+                "label": "Your Answer",
+                "required": true,
+                "data-source": [
+                  { "id": "A", "title": "A. I forget meals sometimes or crave snacks at odd hours 🥨" },
+                  { "id": "B", "title": "B. I get hangry if I skip a meal 🍛" },
+                  { "id": "C", "title": "C. I love comfort food and eat slowly 🍲" }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "Next",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "country_code": "${data.country_code}",
+                    "mobile_number": "${data.mobile_number}",
+                    "q1": "${data.q1}",
+                    "q2": "${data.q2}",
+                    "q3": "${form.q3_answer}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "QUESTION_FOUR",
+      "title": "Question 4/10",
+      "data": {
+        "country_code": { "type": "string", "__example__": "+91" },
+        "mobile_number": { "type": "string", "__example__": "1234567890" },
+        "q1": { "type": "string", "__example__": "A" },
+        "q2": { "type": "string", "__example__": "A" },
+        "q3": { "type": "string", "__example__": "A" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "form",
+            "children": [
+              { "type": "TextBody", "text": "How does stress show up for you?" },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "q4_answer",
+                "label": "Your Answer",
+                "required": true,
+                "data-source": [
+                  { "id": "A", "title": "A. I overthink, get anxious, or can’t sleep 😵‍💫" },
+                  { "id": "B", "title": "B. I get irritated or impatient 🔥" },
+                  { "id": "C", "title": "C. I withdraw or feel unmotivated 😴" }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "Next",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "country_code": "${data.country_code}",
+                    "mobile_number": "${data.mobile_number}",
+                    "q1": "${data.q1}",
+                    "q2": "${data.q2}",
+                    "q3": "${data.q3}",
+                    "q4": "${form.q4_answer}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "QUESTION_FIVE",
+      "title": "Question 5/10",
+      "data": {
+        "country_code": { "type": "string", "__example__": "+91" },
+        "mobile_number": { "type": "string", "__example__": "1234567890" },
+        "q1": { "type": "string", "__example__": "A" },
+        "q2": { "type": "string", "__example__": "A" },
+        "q3": { "type": "string", "__example__": "A" },
+        "q4": { "type": "string", "__example__": "A" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "form",
+            "children": [
+              { "type": "TextBody", "text": "What kind of climate do you feel best in?" },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "q5_answer",
+                "label": "Your Answer",
+                "required": true,
+                "data-source": [
+                  { "id": "A", "title": "A. Warm and humid — cold winds make me shiver 🌀" },
+                  { "id": "B", "title": "B. Cool and breezy — I can’t stand too much heat ☀️" },
+                  { "id": "C", "title": "C. Warm and dry — damp weather feels heavy 🌧️" }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "Next",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "country_code": "${data.country_code}",
+                    "mobile_number": "${data.mobile_number}",
+                    "q1": "${data.q1}",
+                    "q2": "${data.q2}",
+                    "q3": "${data.q3}",
+                    "q4": "${data.q4}",
+                    "q5": "${form.q5_answer}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "QUESTION_SIX",
+      "title": "Question 6/10",
+      "data": {
+        "country_code": { "type": "string", "__example__": "+91" },
+        "mobile_number": { "type": "string", "__example__": "1234567890" },
+        "q1": { "type": "string", "__example__": "A" },
+        "q2": { "type": "string", "__example__": "A" },
+        "q3": { "type": "string", "__example__": "A" },
+        "q4": { "type": "string", "__example__": "A" },
+        "q5": { "type": "string", "__example__": "A" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "form",
+            "children": [
+              { "type": "TextBody", "text": "How would your friends describe you?" },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "q6_answer",
+                "label": "Your Answer",
+                "required": true,
+                "data-source": [
+                  { "id": "A", "title": "A. Creative, spontaneous, fun, but a bit unpredictable 🎨" },
+                  { "id": "B", "title": "B. Driven, confident, and organized 🔥" },
+                  { "id": "C", "title": "C. Loyal, calm, and comforting 🌱" }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "Next",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "country_code": "${data.country_code}",
+                    "mobile_number": "${data.mobile_number}",
+                    "q1": "${data.q1}",
+                    "q2": "${data.q2}",
+                    "q3": "${data.q3}",
+                    "q4": "${data.q4}",
+                    "q5": "${data.q5}",
+                    "q6": "${form.q6_answer}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "QUESTION_SEVEN",
+      "title": "Question 7/10",
+      "data": {
+        "country_code": { "type": "string", "__example__": "+91" },
+        "mobile_number": { "type": "string", "__example__": "1234567890" },
+        "q1": { "type": "string", "__example__": "A" },
+        "q2": { "type": "string", "__example__": "A" },
+        "q3": { "type": "string", "__example__": "A" },
+        "q4": { "type": "string", "__example__": "A" },
+        "q5": { "type": "string", "__example__": "A" },
+        "q6": { "type": "string", "__example__": "A" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "form",
+            "children": [
+              { "type": "TextBody", "text": "What’s your ideal way to recharge?" },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "q7_answer",
+                "label": "Your Answer",
+                "required": true,
+                "data-source": [
+                  { "id": "A", "title": "A. Dancing, journaling, or doing something spontaneous 🕺" },
+                  { "id": "B", "title": "B. A focused workout or competitive sport 🏋️" },
+                  { "id": "C", "title": "C. Meditation, nature walks, or a long nap 🌙" }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "Next",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "country_code": "${data.country_code}",
+                    "mobile_number": "${data.mobile_number}",
+                    "q1": "${data.q1}",
+                    "q2": "${data.q2}",
+                    "q3": "${data.q3}",
+                    "q4": "${data.q4}",
+                    "q5": "${data.q5}",
+                    "q6": "${data.q6}",
+                    "q7": "${form.q7_answer}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "QUESTION_EIGHT",
+      "title": "Question 8/10",
+      "data": {
+        "country_code": { "type": "string", "__example__": "+91" },
+        "mobile_number": { "type": "string", "__example__": "1234567890" },
+        "q1": { "type": "string", "__example__": "A" },
+        "q2": { "type": "string", "__example__": "A" },
+        "q3": { "type": "string", "__example__": "A" },
+        "q4": { "type": "string", "__example__": "A" },
+        "q5": { "type": "string", "__example__": "A" },
+        "q6": { "type": "string", "__example__": "A" },
+        "q7": { "type": "string", "__example__": "A" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "form",
+            "children": [
+              { "type": "TextBody", "text": "What best describes your body frame/type?" },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "q8_answer",
+                "label": "Your Answer",
+                "required": true,
+                "data-source": [
+                  { "id": "A", "title": "A. Slim or lean; I find it hard to gain weight 🌬️ (Vata)" },
+                  { "id": "B", "title": "B. Medium build; I gain or lose weight easily 🔥 (Pitta)" },
+                  { "id": "C", "title": "C. Broad or sturdy; I tend to gain weight easily 🌿 (Kapha)" }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "Next",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "country_code": "${data.country_code}",
+                    "mobile_number": "${data.mobile_number}",
+                    "q1": "${data.q1}",
+                    "q2": "${data.q2}",
+                    "q3": "${data.q3}",
+                    "q4": "${data.q4}",
+                    "q5": "${data.q5}",
+                    "q6": "${data.q6}",
+                    "q7": "${data.q7}",
+                    "q8": "${form.q8_answer}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "QUESTION_NINE",
+      "title": "Question 9/10",
+      "data": {
+        "country_code": { "type": "string", "__example__": "+91" },
+        "mobile_number": { "type": "string", "__example__": "1234567890" },
+        "q1": { "type": "string", "__example__": "A" },
+        "q2": { "type": "string", "__example__": "A" },
+        "q3": { "type": "string", "__example__": "A" },
+        "q4": { "type": "string", "__example__": "A" },
+        "q5": { "type": "string", "__example__": "A" },
+        "q6": { "type": "string", "__example__": "A" },
+        "q7": { "type": "string", "__example__": "A" },
+        "q8": { "type": "string", "__example__": "A" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "form",
+            "children": [
+              { "type": "TextBody", "text": "What is your skin type?" },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "q9_answer",
+                "label": "Your Answer",
+                "required": true,
+                "data-source": [
+                  { "id": "A", "title": "A. Dry, thin, or easily rough in cold weather 🍂 (Vata)" },
+                  { "id": "B", "title": "B. Warm, reddish, or prone to acne/oiliness 🔥 (Pitta)" },
+                  { "id": "C", "title": "C. Smooth, cool, and often a bit oily 🌸 (Kapha)" }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "Next",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "country_code": "${data.country_code}",
+                    "mobile_number": "${data.mobile_number}",
+                    "q1": "${data.q1}",
+                    "q2": "${data.q2}",
+                    "q3": "${data.q3}",
+                    "q4": "${data.q4}",
+                    "q5": "${data.q5}",
+                    "q6": "${data.q6}",
+                    "q7": "${data.q7}",
+                    "q8": "${data.q8}",
+                    "q9": "${form.q9_answer}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "QUESTION_TEN",
+      "title": "Question 10/10",
+      "data": {
+        "country_code": { "type": "string", "__example__": "+91" },
+        "mobile_number": { "type": "string", "__example__": "1234567890" },
+        "q1": { "type": "string", "__example__": "A" },
+        "q2": { "type": "string", "__example__": "A" },
+        "q3": { "type": "string", "__example__": "A" },
+        "q4": { "type": "string", "__example__": "A" },
+        "q5": { "type": "string", "__example__": "A" },
+        "q6": { "type": "string", "__example__": "A" },
+        "q7": { "type": "string", "__example__": "A" },
+        "q8": { "type": "string", "__example__": "A" },
+        "q9": { "type": "string", "__example__": "A" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "form",
+            "children": [
+              { "type": "TextBody", "text": "How is your memory and learning power?" },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "q10_answer",
+                "label": "Your Answer",
+                "required": true,
+                "data-source": [
+                  { "id": "A", "title": "A. Quick to learn but also quick to forget 📚💨 (Vata)" },
+                  { "id": "B", "title": "B. Sharp, focused, and good at analysis 🎯 (Pitta)" },
+                  { "id": "C", "title": "C. Steady and long-term; I never forget easily 🌱 (Kapha)" }
+                ]
+              },
+              { "type": "TextBody", "text": "🌼 Great! You’ve completed all the questions!" },
+              {
+                "type": "Footer",
+                "label": "See My Result",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "country_code": "${data.country_code}",
+                    "mobile_number": "${data.mobile_number}",
+                    "q1": "${data.q1}",
+                    "q2": "${data.q2}",
+                    "q3": "${data.q3}",
+                    "q4": "${data.q4}",
+                    "q5": "${data.q5}",
+                    "q6": "${data.q6}",
+                    "q7": "${data.q7}",
+                    "q8": "${data.q8}",
+                    "q9": "${data.q9}",
+                    "q10": "${form.q10_answer}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "RESULTS",
+      "title": "Your Result",
+      "terminal": true,
+      "data": {
+        "country_code": { "type": "string", "__example__": "+91" },
+        "mobile_number": { "type": "string", "__example__": "1234567890" },
+        "q1": { "type": "string", "__example__": "A" },
+        "q2": { "type": "string", "__example__": "A" },
+        "q3": { "type": "string", "__example__": "A" },
+        "q4": { "type": "string", "__example__": "A" },
+        "q5": { "type": "string", "__example__": "A" },
+        "q6": { "type": "string", "__example__": "A" },
+        "q7": { "type": "string", "__example__": "A" },
+        "q8": { "type": "string", "__example__": "A" },
+        "q9": { "type": "string", "__example__": "A" },
+        "q10": { "type": "string", "__example__": "A" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Your Ayurvedic Rhythm" },
+          { "type": "TextBody", "text": "You've completed the quiz! Your dominant energy corresponds to the letter you chose most often. Find your result below." },
+          { "type": "TextSubheading", "text": "Mostly A’s – You’re Vata (The Creative Flow)" },
+          { "type": "TextBody", "text": "Light, imaginative, and full of fresh ideas. Your energy moves quickly, but that can lead to feeling scattered.\n\nDaily All Day tip: Ground your energy with routine, warmth, and nourishing meals." },
+          { "type": "TextSubheading", "text": "Mostly B’s – You’re Pitta (The Focused Flame)" },
+          { "type": "TextBody", "text": "Driven, confident, and productive — but that inner fire can lead to burnout.\n\nDaily All Day tip: Keep your cool with calming rituals, light meals, and rest." },
+          { "type": "TextSubheading", "text": "Mostly C’s – You’re Kapha (The Calm Root)" },
+          { "type": "TextBody", "text": "Steady, nurturing, and patient — but too much stillness can slow you down.\n\nDaily All Day tip: Stay inspired with movement, variety, and spice in your routine." },
+          {
+            "type": "Footer",
+            "label": "Submit Results",
+            "on-click-action": {
+              "name": "data_exchange",
+              "payload": {
+                "country_code": "${data.country_code}",
+                "mobile_number": "${data.mobile_number}",
+                "q1": "${data.q1}",
+                "q2": "${data.q2}",
+                "q3": "${data.q3}",
+                "q4": "${data.q4}",
+                "q5": "${data.q5}",
+                "q6": "${data.q6}",
+                "q7": "${data.q7}",
+                "q8": "${data.q8}",
+                "q9": "${data.q9}",
+                "q10": "${data.q10}"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
