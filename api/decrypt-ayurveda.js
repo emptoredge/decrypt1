@@ -108,8 +108,17 @@ export default async function handler(req, res) {
       const submittedData = parsed.data || {};
       
       // Extract mobile number from the data (baton pass pattern)
-      const mobileNumber = submittedData.mobile_number || submittedData.PHONE_NUMBER_VAL || null;
-      const countryCode = submittedData.country_code || submittedData.COUNTRY_CODE_VAL || null;
+      // Filter out template string literals that WhatsApp doesn't evaluate
+      let mobileNumber = submittedData.mobile_number || submittedData.PHONE_NUMBER_VAL || null;
+      let countryCode = submittedData.country_code || submittedData.COUNTRY_CODE_VAL || null;
+      
+      // If we got template strings instead of actual values, ignore them
+      if (mobileNumber && mobileNumber.includes('${')) {
+        mobileNumber = null;
+      }
+      if (countryCode && countryCode.includes('${')) {
+        countryCode = null;
+      }
       
       // Capture form data for business logic
       formData = {
@@ -177,17 +186,36 @@ export default async function handler(req, res) {
       // CRITICAL: Baton pass - always forward mobile number and country code to next screen
       // On PHONE_NUMBER_SCREEN, we extract from form fields (PHONE_NUMBER_VAL, COUNTRY_CODE_VAL)
       // On all other screens, we receive from data and pass forward
-      const batonPassData = {
-        country_code: countryCode || submittedData.country_code,
-        mobile_number: mobileNumber || submittedData.mobile_number
-      };
+      // BUT: Filter out template string literals that WhatsApp doesn't evaluate properly
+      const cleanMobileNumber = mobileNumber && !mobileNumber.includes('${') ? mobileNumber : null;
+      const cleanCountryCode = countryCode && !countryCode.includes('${') ? countryCode : null;
+      
+      const batonPassData = {};
+      if (cleanCountryCode) {
+        batonPassData.country_code = cleanCountryCode;
+      }
+      if (cleanMobileNumber) {
+        batonPassData.mobile_number = cleanMobileNumber;
+      }
+      
+      // Filter out template strings from submitted data
+      const cleanedSubmittedData = {};
+      Object.keys(submittedData).forEach(key => {
+        const value = submittedData[key];
+        // Only include non-template values
+        if (typeof value === 'string' && value.includes('${')) {
+          // Skip template strings
+        } else {
+          cleanedSubmittedData[key] = value;
+        }
+      });
       
       // Pass all previous data forward including mobile number
       responseData = {
         screen: nextScreen,
         data: {
           ...batonPassData,
-          ...submittedData
+          ...cleanedSubmittedData
         }
       };
       
