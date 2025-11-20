@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
-  try {
+  try { 
     const { encrypted_aes_key, encrypted_flow_data, initial_vector } = req.body;
     if (!encrypted_aes_key || !encrypted_flow_data || !initial_vector) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -107,10 +107,16 @@ export default async function handler(req, res) {
       const currentScreen = parsed.screen;
       const submittedData = parsed.data || {};
       
+      // Extract mobile number from the data (baton pass pattern)
+      const mobileNumber = submittedData.mobile_number || submittedData.PHONE_NUMBER_VAL || null;
+      const countryCode = submittedData.country_code || submittedData.COUNTRY_CODE_VAL || null;
+      
       // Capture form data for business logic
       formData = {
         screen: currentScreen,
         data: submittedData,
+        mobileNumber: mobileNumber,
+        countryCode: countryCode,
         timestamp: new Date().toISOString()
       };
       
@@ -143,8 +149,9 @@ export default async function handler(req, res) {
         };
       }
       
-      // Define the routing model for Ayurveda quiz
+      // Define the routing model for Ayurveda quiz (with PHONE_NUMBER_SCREEN as first)
       const routingModel = {
+        "PHONE_NUMBER_SCREEN": "WELCOME_SCREEN",
         "WELCOME_SCREEN": "QUESTION_ONE",
         "QUESTION_ONE": "QUESTION_TWO",
         "QUESTION_TWO": "QUESTION_THREE",
@@ -167,18 +174,30 @@ export default async function handler(req, res) {
         });
       }
       
-      // Pass all previous answers to next screen
+      // CRITICAL: Baton pass - always forward mobile number and country code to next screen
+      // On PHONE_NUMBER_SCREEN, we extract from form fields (PHONE_NUMBER_VAL, COUNTRY_CODE_VAL)
+      // On all other screens, we receive from data and pass forward
+      const batonPassData = {
+        country_code: countryCode || submittedData.country_code,
+        mobile_number: mobileNumber || submittedData.mobile_number
+      };
+      
+      // Pass all previous data forward including mobile number
       responseData = {
         screen: nextScreen,
-        data: submittedData
+        data: {
+          ...batonPassData,
+          ...submittedData
+        }
       };
       
     } else if (parsed.action === "navigate") {
       // Handle flow navigation/initialization
       console.log('🧭 Navigate action received:', parsed);
       
+      // Start at PHONE_NUMBER_SCREEN to collect mobile number first
       responseData = {
-        screen: "WELCOME_SCREEN",
+        screen: "PHONE_NUMBER_SCREEN",
         data: {}
       };
       
